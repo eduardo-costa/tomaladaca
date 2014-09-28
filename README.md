@@ -4,9 +4,9 @@ Infográfico web mostrando as relações entre partidos/políticos e seus patroc
 
 # Sumário
 
-Versão com mais filtros e diferentes visualizações dos dados disponibilizados na matéria do jornal Folha de São Paulo.
-Fonte: http://estadaodados.com/doacoes2014/#.VCbjBPldUwD
-Dados: http://estadaodados.com/doacoes2014/dados/doacoes2014.json
+Versão com mais filtros e diferentes visualizações dos dados disponibilizados na matéria do jornal Folha de São Paulo.  
+Fonte: http://estadaodados.com/doacoes2014/#.VCbjBPldUwD  
+Dados: http://estadaodados.com/doacoes2014/dados/doacoes2014.json  
 
 # Tecnologia
 
