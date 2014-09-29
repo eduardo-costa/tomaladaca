@@ -1,5 +1,5 @@
 (function () { "use strict";
-var $hxClasses = {};
+var $hxClasses = {},$estr = function() { return js.Boot.__string_rec(this,''); };
 function $extend(from, fields) {
 	function Inherit() {} Inherit.prototype = from; var proto = new Inherit();
 	for (var name in fields) proto[name] = fields[name];
@@ -41,10 +41,28 @@ HxOverrides.remove = function(a,obj) {
 	a.splice(i,1);
 	return true;
 };
+HxOverrides.iter = function(a) {
+	return { cur : 0, arr : a, hasNext : function() {
+		return this.cur < this.arr.length;
+	}, next : function() {
+		return this.arr[this.cur++];
+	}};
+};
 var IMap = function() { };
 $hxClasses["IMap"] = IMap;
 IMap.__name__ = ["IMap"];
 Math.__name__ = ["Math"];
+var Reflect = function() { };
+$hxClasses["Reflect"] = Reflect;
+Reflect.__name__ = ["Reflect"];
+Reflect.getProperty = function(o,field) {
+	var tmp;
+	if(o == null) return null; else if(o.__properties__ && (tmp = o.__properties__["get_" + field])) return o[tmp](); else return o[field];
+};
+Reflect.setProperty = function(o,field,value) {
+	var tmp;
+	if(o.__properties__ && (tmp = o.__properties__["set_" + field])) o[tmp](value); else o[field] = value;
+};
 var Std = function() { };
 $hxClasses["Std"] = Std;
 Std.__name__ = ["Std"];
@@ -289,13 +307,37 @@ Xml.prototype = {
 		this._children.push(x);
 	}
 	,__class__: Xml
+	,__properties__: {set_nodeValue:"set_nodeValue",get_nodeValue:"get_nodeValue",set_nodeName:"set_nodeName",get_nodeName:"get_nodeName"}
 };
 var haxe = {};
-haxe.Timer = function() { };
+haxe.Timer = function(time_ms) {
+	var me = this;
+	this.id = setInterval(function() {
+		me.run();
+	},time_ms);
+};
 $hxClasses["haxe.Timer"] = haxe.Timer;
 haxe.Timer.__name__ = ["haxe","Timer"];
+haxe.Timer.delay = function(f,time_ms) {
+	var t = new haxe.Timer(time_ms);
+	t.run = function() {
+		t.stop();
+		f();
+	};
+	return t;
+};
 haxe.Timer.stamp = function() {
 	return new Date().getTime() / 1000;
+};
+haxe.Timer.prototype = {
+	stop: function() {
+		if(this.id == null) return;
+		clearInterval(this.id);
+		this.id = null;
+	}
+	,run: function() {
+	}
+	,__class__: haxe.Timer
 };
 haxe.io = {};
 haxe.io.Bytes = function(length,b) {
@@ -484,6 +526,42 @@ haxe.ds.IntMap.prototype = {
 	}
 	,__class__: haxe.ds.IntMap
 };
+haxe.ds.ObjectMap = function() {
+	this.h = { };
+	this.h.__keys__ = { };
+};
+$hxClasses["haxe.ds.ObjectMap"] = haxe.ds.ObjectMap;
+haxe.ds.ObjectMap.__name__ = ["haxe","ds","ObjectMap"];
+haxe.ds.ObjectMap.__interfaces__ = [IMap];
+haxe.ds.ObjectMap.prototype = {
+	set: function(key,value) {
+		var id = key.__id__ || (key.__id__ = ++haxe.ds.ObjectMap.count);
+		this.h[id] = value;
+		this.h.__keys__[id] = key;
+	}
+	,get: function(key) {
+		return this.h[key.__id__];
+	}
+	,exists: function(key) {
+		return this.h.__keys__[key.__id__] != null;
+	}
+	,keys: function() {
+		var a = [];
+		for( var key in this.h.__keys__ ) {
+		if(this.h.hasOwnProperty(key)) a.push(this.h.__keys__[key]);
+		}
+		return HxOverrides.iter(a);
+	}
+	,iterator: function() {
+		return { ref : this.h, it : this.keys(), hasNext : function() {
+			return this.it.hasNext();
+		}, next : function() {
+			var i = this.it.next();
+			return this.ref[i.__id__];
+		}};
+	}
+	,__class__: haxe.ds.ObjectMap
+};
 haxe.ds.StringMap = function() {
 	this.h = { };
 };
@@ -519,12 +597,15 @@ haxe.io.Eof.prototype = {
 };
 haxe.io.Error = { __ename__ : true, __constructs__ : ["Blocked","Overflow","OutsideBounds","Custom"] };
 haxe.io.Error.Blocked = ["Blocked",0];
+haxe.io.Error.Blocked.toString = $estr;
 haxe.io.Error.Blocked.__enum__ = haxe.io.Error;
 haxe.io.Error.Overflow = ["Overflow",1];
+haxe.io.Error.Overflow.toString = $estr;
 haxe.io.Error.Overflow.__enum__ = haxe.io.Error;
 haxe.io.Error.OutsideBounds = ["OutsideBounds",2];
+haxe.io.Error.OutsideBounds.toString = $estr;
 haxe.io.Error.OutsideBounds.__enum__ = haxe.io.Error;
-haxe.io.Error.Custom = function(e) { var $x = ["Custom",3,e]; $x.__enum__ = haxe.io.Error; return $x; };
+haxe.io.Error.Custom = function(e) { var $x = ["Custom",3,e]; $x.__enum__ = haxe.io.Error; $x.toString = $estr; return $x; };
 haxe.xml = {};
 haxe.xml.Parser = function() { };
 $hxClasses["haxe.xml.Parser"] = haxe.xml.Parser;
@@ -842,6 +923,7 @@ haxor.core.Resource.prototype = {
 	,OnDestroy: function() {
 	}
 	,__class__: haxor.core.Resource
+	,__properties__: {get_destroyed:"get_destroyed",set_name:"set_name",get_name:"get_name",get_uid:"get_uid",get_guid:"get_guid",get_application:"get_application"}
 };
 haxor.component = {};
 haxor.component.Component = function(p_name) {
@@ -886,6 +968,7 @@ haxor.component.Component.prototype = $extend(haxor.core.Resource.prototype,{
 	,OnVisibilityChange: function(p_visible) {
 	}
 	,__class__: haxor.component.Component
+	,__properties__: $extend(haxor.core.Resource.prototype.__properties__,{get_transform:"get_transform",get_entity:"get_entity"})
 });
 haxor.component.Behaviour = function(p_name) {
 	haxor.component.Component.call(this,p_name);
@@ -915,12 +998,14 @@ haxor.component.Behaviour.prototype = $extend(haxor.component.Component.prototyp
 	,OnStart: function() {
 	}
 	,__class__: haxor.component.Behaviour
+	,__properties__: $extend(haxor.component.Component.prototype.__properties__,{set_enabled:"set_enabled",get_enabled:"get_enabled"})
 });
 haxor.component.Camera = function(p_name) {
 	haxor.component.Behaviour.call(this,p_name);
 };
 $hxClasses["haxor.component.Camera"] = haxor.component.Camera;
 haxor.component.Camera.__name__ = ["haxor","component","Camera"];
+haxor.component.Camera.__properties__ = {set_main:"set_main",get_main:"get_main",get_current:"get_current",get_list:"get_list"}
 haxor.component.Camera.get_list = function() {
 	return haxor.context.EngineContext.camera.list.slice();
 };
@@ -1157,6 +1242,7 @@ haxor.component.Camera.prototype = $extend(haxor.component.Behaviour.prototype,{
 		haxor.context.EngineContext.camera.Destroy(this);
 	}
 	,__class__: haxor.component.Camera
+	,__properties__: $extend(haxor.component.Behaviour.prototype.__properties__,{get_frustum:"get_frustum",set_filters:"set_filters",get_filters:"get_filters",set_captureDepth:"set_captureDepth",get_captureDepth:"get_captureDepth",set_quality:"set_quality",get_quality:"get_quality",get_ProjectionMatrixInverse:"get_ProjectionMatrixInverse",get_ProjectionMatrix:"get_ProjectionMatrix",get_WorldToCamera:"get_WorldToCamera",get_CameraToWorld:"get_CameraToWorld",set_viewport:"set_viewport",get_viewport:"get_viewport",get_pixelViewport:"get_pixelViewport",set_order:"set_order",get_order:"get_order",set_far:"set_far",get_far:"get_far",set_near:"set_near",get_near:"get_near",set_fov:"set_fov",get_fov:"get_fov",set_mask:"set_mask",get_mask:"get_mask"})
 });
 haxor.math = {};
 haxor.math.Color = function(p_r,p_g,p_b,p_a) {
@@ -1171,6 +1257,7 @@ haxor.math.Color = function(p_r,p_g,p_b,p_a) {
 };
 $hxClasses["haxor.math.Color"] = haxor.math.Color;
 haxor.math.Color.__name__ = ["haxor","math","Color"];
+haxor.math.Color.__properties__ = {get_gray90:"get_gray90",get_gray75:"get_gray75",get_gray50:"get_gray50",get_gray25:"get_gray25",get_gray10:"get_gray10",get_empty:"get_empty",get_white:"get_white",get_black:"get_black",get_magenta:"get_magenta",get_blue:"get_blue",get_cyan:"get_cyan",get_green:"get_green",get_yellow:"get_yellow",get_red:"get_red",get_temp:"get_temp"}
 haxor.math.Color.get_temp = function() {
 	return haxor.context.EngineContext.data.get_c();
 };
@@ -1387,6 +1474,7 @@ haxor.math.Color.prototype = {
 		return "[" + haxor.math.Mathf.RoundPlaces(this.r,p_places) + "," + haxor.math.Mathf.RoundPlaces(this.g,p_places) + "," + haxor.math.Mathf.RoundPlaces(this.b,p_places) + "," + haxor.math.Mathf.RoundPlaces(this.a,p_places) + "]";
 	}
 	,__class__: haxor.math.Color
+	,__properties__: {get_negative:"get_negative",get_luminance:"get_luminance",set_rgb:"set_rgb",get_rgb:"get_rgb",set_rgba:"set_rgba",get_rgba:"get_rgba",get_css:"get_css",set_argb:"set_argb",get_argb:"get_argb",get_xyzw:"get_xyzw",get_xyz:"get_xyz",get_clone:"get_clone"}
 };
 haxor.component.Light = function() {
 	if(haxor.component.Light.m_list == null) haxor.component.Light.m_list = [];
@@ -1398,6 +1486,7 @@ haxor.component.Light = function() {
 };
 $hxClasses["haxor.component.Light"] = haxor.component.Light;
 haxor.component.Light.__name__ = ["haxor","component","Light"];
+haxor.component.Light.__properties__ = {get_list:"get_list"}
 haxor.component.Light.get_list = function() {
 	var l = new Array();
 	if(haxor.component.Light.m_list == null) return l;
@@ -1483,6 +1572,7 @@ haxor.component.Renderer.prototype = $extend(haxor.component.Behaviour.prototype
 		haxor.context.EngineContext.renderer.Destroy(this);
 	}
 	,__class__: haxor.component.Renderer
+	,__properties__: $extend(haxor.component.Behaviour.prototype.__properties__,{get_visible:"get_visible",set_material:"set_material",get_material:"get_material"})
 });
 haxor.component.MeshRenderer = function(p_name) {
 	haxor.component.Renderer.call(this,p_name);
@@ -1576,12 +1666,14 @@ haxor.component.MeshRenderer.prototype = $extend(haxor.component.Renderer.protot
 		haxor.graphics.Graphics.Render(this.m_mesh,this.m_material,this.m_entity.m_transform,haxor.component.Camera.m_current);
 	}
 	,__class__: haxor.component.MeshRenderer
+	,__properties__: $extend(haxor.component.Renderer.prototype.__properties__,{set_mesh:"set_mesh",get_mesh:"get_mesh"})
 });
 haxor.component.Transform = function(p_name) {
 	haxor.component.Component.call(this,p_name);
 };
 $hxClasses["haxor.component.Transform"] = haxor.component.Transform;
 haxor.component.Transform.__name__ = ["haxor","component","Transform"];
+haxor.component.Transform.__properties__ = {get_root:"get_root"}
 haxor.component.Transform.TransformConcat = function(t) {
 	var v = t.m_parent.m_worldMatrix;
 	var m = t.m_worldMatrix;
@@ -1963,6 +2055,7 @@ haxor.component.Transform.prototype = $extend(haxor.component.Component.prototyp
 		return this.get_name() + " " + p.ToString(p_places) + "" + e.ToString(p_places) + "" + s.ToString(p_places);
 	}
 	,__class__: haxor.component.Transform
+	,__properties__: $extend(haxor.component.Component.prototype.__properties__,{get_WorldMatrixInverse:"get_WorldMatrixInverse",get_WorldMatrix:"get_WorldMatrix",get_scale:"get_scale",set_euler:"set_euler",get_euler:"get_euler",set_rotation:"set_rotation",get_rotation:"get_rotation",set_position:"set_position",get_position:"get_position",set_localScale:"set_localScale",get_localScale:"get_localScale",set_localEuler:"set_localEuler",get_localEuler:"get_localEuler",set_localRotation:"set_localRotation",get_localRotation:"get_localRotation",set_localPosition:"set_localPosition",get_localPosition:"get_localPosition",get_childCount:"get_childCount",set_parent:"set_parent",get_parent:"get_parent",get_forward:"get_forward",get_up:"get_up",get_right:"get_right"})
 });
 haxor.context = {};
 haxor.context.CameraContext = function() {
@@ -2145,6 +2238,7 @@ haxor.context.DataContext.prototype = {
 		return this.m_m4[this.m_nq = (this.m_nm4 + 1) % this.m_m4.length];
 	}
 	,__class__: haxor.context.DataContext
+	,__properties__: {get_m4:"get_m4",get_aabb2:"get_aabb2",get_aabb3:"get_aabb3",get_q:"get_q",get_c:"get_c",get_v4:"get_v4",get_v3:"get_v3",get_v2:"get_v2"}
 };
 haxor.context.EngineContext = function() { };
 $hxClasses["haxor.context.EngineContext"] = haxor.context.EngineContext;
@@ -2894,6 +2988,7 @@ haxor.context.BaseProcess.prototype = {
 	,Clear: function() {
 	}
 	,__class__: haxor.context.BaseProcess
+	,__properties__: {get_length:"get_length"}
 };
 haxor.context.Process = function(p_name,p_size,p_update_cid) {
 	if(p_update_cid == null) p_update_cid = true;
@@ -3514,6 +3609,7 @@ haxor.context.UID.prototype = {
 		return this.m_id;
 	}
 	,__class__: haxor.context.UID
+	,__properties__: {get_next:"get_next",set_id:"set_id",get_id:"get_id"}
 };
 haxor.core.BaseApplication = function(p_name) {
 	haxor.component.Behaviour.call(this,p_name);
@@ -3643,6 +3739,7 @@ haxor.core.BaseApplication.prototype = $extend(haxor.component.Behaviour.prototy
 		return 0.0;
 	}
 	,__class__: haxor.core.BaseApplication
+	,__properties__: $extend(haxor.component.Behaviour.prototype.__properties__,{get_platform:"get_platform",set_fps:"set_fps",get_fps:"get_fps",get_vendor:"get_vendor",get_protocol:"get_protocol"})
 });
 haxor.platform = {};
 haxor.platform.html = {};
@@ -3654,13 +3751,17 @@ $hxClasses["haxor.platform.html.HTMLApplication"] = haxor.platform.html.HTMLAppl
 haxor.platform.html.HTMLApplication.__name__ = ["haxor","platform","html","HTMLApplication"];
 haxor.platform.html.HTMLApplication.__super__ = haxor.core.BaseApplication;
 haxor.platform.html.HTMLApplication.prototype = $extend(haxor.core.BaseApplication.prototype,{
-	GetContainerWidth: function() {
+	get_stage: function() {
+		return haxor.dom.DOMStage.m_instance;
+	}
+	,GetContainerWidth: function() {
 		return this.m_container.clientWidth;
 	}
 	,GetContainerHeight: function() {
 		return this.m_container.clientHeight;
 	}
 	,__class__: haxor.platform.html.HTMLApplication
+	,__properties__: $extend(haxor.core.BaseApplication.prototype.__properties__,{get_stage:"get_stage"})
 });
 haxor.core.Application = function() {
 	haxor.platform.html.HTMLApplication.call(this);
@@ -3673,29 +3774,41 @@ haxor.core.Application.prototype = $extend(haxor.platform.html.HTMLApplication.p
 });
 haxor.core.Platform = { __ename__ : true, __constructs__ : ["Unknown","Windows","Linux","Android","MacOS","iOS","HTML","NodeJS"] };
 haxor.core.Platform.Unknown = ["Unknown",0];
+haxor.core.Platform.Unknown.toString = $estr;
 haxor.core.Platform.Unknown.__enum__ = haxor.core.Platform;
 haxor.core.Platform.Windows = ["Windows",1];
+haxor.core.Platform.Windows.toString = $estr;
 haxor.core.Platform.Windows.__enum__ = haxor.core.Platform;
 haxor.core.Platform.Linux = ["Linux",2];
+haxor.core.Platform.Linux.toString = $estr;
 haxor.core.Platform.Linux.__enum__ = haxor.core.Platform;
 haxor.core.Platform.Android = ["Android",3];
+haxor.core.Platform.Android.toString = $estr;
 haxor.core.Platform.Android.__enum__ = haxor.core.Platform;
 haxor.core.Platform.MacOS = ["MacOS",4];
+haxor.core.Platform.MacOS.toString = $estr;
 haxor.core.Platform.MacOS.__enum__ = haxor.core.Platform;
 haxor.core.Platform.iOS = ["iOS",5];
+haxor.core.Platform.iOS.toString = $estr;
 haxor.core.Platform.iOS.__enum__ = haxor.core.Platform;
 haxor.core.Platform.HTML = ["HTML",6];
+haxor.core.Platform.HTML.toString = $estr;
 haxor.core.Platform.HTML.__enum__ = haxor.core.Platform;
 haxor.core.Platform.NodeJS = ["NodeJS",7];
+haxor.core.Platform.NodeJS.toString = $estr;
 haxor.core.Platform.NodeJS.__enum__ = haxor.core.Platform;
 haxor.core.ApplicationProtocol = { __ename__ : true, __constructs__ : ["None","File","HTTP","HTTPS"] };
 haxor.core.ApplicationProtocol.None = ["None",0];
+haxor.core.ApplicationProtocol.None.toString = $estr;
 haxor.core.ApplicationProtocol.None.__enum__ = haxor.core.ApplicationProtocol;
 haxor.core.ApplicationProtocol.File = ["File",1];
+haxor.core.ApplicationProtocol.File.toString = $estr;
 haxor.core.ApplicationProtocol.File.__enum__ = haxor.core.ApplicationProtocol;
 haxor.core.ApplicationProtocol.HTTP = ["HTTP",2];
+haxor.core.ApplicationProtocol.HTTP.toString = $estr;
 haxor.core.ApplicationProtocol.HTTP.__enum__ = haxor.core.ApplicationProtocol;
 haxor.core.ApplicationProtocol.HTTPS = ["HTTPS",3];
+haxor.core.ApplicationProtocol.HTTPS.toString = $estr;
 haxor.core.ApplicationProtocol.HTTPS.__enum__ = haxor.core.ApplicationProtocol;
 haxor.core.Console = function() { };
 $hxClasses["haxor.core.Console"] = haxor.core.Console;
@@ -3791,8 +3904,10 @@ haxor.core.Console.SetStyle = function(p_size,p_color,p_background,p_font) {
 };
 haxor.core.EngineState = { __ename__ : true, __constructs__ : ["Play","Editor"] };
 haxor.core.EngineState.Play = ["Play",0];
+haxor.core.EngineState.Play.toString = $estr;
 haxor.core.EngineState.Play.__enum__ = haxor.core.EngineState;
 haxor.core.EngineState.Editor = ["Editor",1];
+haxor.core.EngineState.Editor.toString = $estr;
 haxor.core.EngineState.Editor.__enum__ = haxor.core.EngineState;
 haxor.core.Engine = function() { };
 $hxClasses["haxor.core.Engine"] = haxor.core.Engine;
@@ -3984,6 +4099,7 @@ haxor.core.Entity.prototype = $extend(haxor.core.Resource.prototype,{
 		this.m_components = null;
 	}
 	,__class__: haxor.core.Entity
+	,__properties__: $extend(haxor.core.Resource.prototype.__properties__,{set_layer:"set_layer",get_layer:"get_layer",get_transform:"get_transform",set_enabled:"set_enabled",get_enabled:"get_enabled"})
 });
 haxor.core.RenderQueue = function() { };
 $hxClasses["haxor.core.RenderQueue"] = haxor.core.RenderQueue;
@@ -4005,67 +4121,94 @@ $hxClasses["haxor.core.DepthTest"] = haxor.core.DepthTest;
 haxor.core.DepthTest.__name__ = ["haxor","core","DepthTest"];
 haxor.core.PixelFormat = { __ename__ : true, __constructs__ : ["Alpha8","Luminance","RGB8","RGBA8","Half","Half3","Half4","Float","Float3","Float4","Depth"] };
 haxor.core.PixelFormat.Alpha8 = ["Alpha8",0];
+haxor.core.PixelFormat.Alpha8.toString = $estr;
 haxor.core.PixelFormat.Alpha8.__enum__ = haxor.core.PixelFormat;
 haxor.core.PixelFormat.Luminance = ["Luminance",1];
+haxor.core.PixelFormat.Luminance.toString = $estr;
 haxor.core.PixelFormat.Luminance.__enum__ = haxor.core.PixelFormat;
 haxor.core.PixelFormat.RGB8 = ["RGB8",2];
+haxor.core.PixelFormat.RGB8.toString = $estr;
 haxor.core.PixelFormat.RGB8.__enum__ = haxor.core.PixelFormat;
 haxor.core.PixelFormat.RGBA8 = ["RGBA8",3];
+haxor.core.PixelFormat.RGBA8.toString = $estr;
 haxor.core.PixelFormat.RGBA8.__enum__ = haxor.core.PixelFormat;
 haxor.core.PixelFormat.Half = ["Half",4];
+haxor.core.PixelFormat.Half.toString = $estr;
 haxor.core.PixelFormat.Half.__enum__ = haxor.core.PixelFormat;
 haxor.core.PixelFormat.Half3 = ["Half3",5];
+haxor.core.PixelFormat.Half3.toString = $estr;
 haxor.core.PixelFormat.Half3.__enum__ = haxor.core.PixelFormat;
 haxor.core.PixelFormat.Half4 = ["Half4",6];
+haxor.core.PixelFormat.Half4.toString = $estr;
 haxor.core.PixelFormat.Half4.__enum__ = haxor.core.PixelFormat;
 haxor.core.PixelFormat.Float = ["Float",7];
+haxor.core.PixelFormat.Float.toString = $estr;
 haxor.core.PixelFormat.Float.__enum__ = haxor.core.PixelFormat;
 haxor.core.PixelFormat.Float3 = ["Float3",8];
+haxor.core.PixelFormat.Float3.toString = $estr;
 haxor.core.PixelFormat.Float3.__enum__ = haxor.core.PixelFormat;
 haxor.core.PixelFormat.Float4 = ["Float4",9];
+haxor.core.PixelFormat.Float4.toString = $estr;
 haxor.core.PixelFormat.Float4.__enum__ = haxor.core.PixelFormat;
 haxor.core.PixelFormat.Depth = ["Depth",10];
+haxor.core.PixelFormat.Depth.toString = $estr;
 haxor.core.PixelFormat.Depth.__enum__ = haxor.core.PixelFormat;
 haxor.core.TextureFilter = { __ename__ : true, __constructs__ : ["Nearest","Linear","NearestMipmapNearest","NearestMipmapLinear","LinearMipmapNearest","LinearMipmapLinear","Trilinear"] };
 haxor.core.TextureFilter.Nearest = ["Nearest",0];
+haxor.core.TextureFilter.Nearest.toString = $estr;
 haxor.core.TextureFilter.Nearest.__enum__ = haxor.core.TextureFilter;
 haxor.core.TextureFilter.Linear = ["Linear",1];
+haxor.core.TextureFilter.Linear.toString = $estr;
 haxor.core.TextureFilter.Linear.__enum__ = haxor.core.TextureFilter;
 haxor.core.TextureFilter.NearestMipmapNearest = ["NearestMipmapNearest",2];
+haxor.core.TextureFilter.NearestMipmapNearest.toString = $estr;
 haxor.core.TextureFilter.NearestMipmapNearest.__enum__ = haxor.core.TextureFilter;
 haxor.core.TextureFilter.NearestMipmapLinear = ["NearestMipmapLinear",3];
+haxor.core.TextureFilter.NearestMipmapLinear.toString = $estr;
 haxor.core.TextureFilter.NearestMipmapLinear.__enum__ = haxor.core.TextureFilter;
 haxor.core.TextureFilter.LinearMipmapNearest = ["LinearMipmapNearest",4];
+haxor.core.TextureFilter.LinearMipmapNearest.toString = $estr;
 haxor.core.TextureFilter.LinearMipmapNearest.__enum__ = haxor.core.TextureFilter;
 haxor.core.TextureFilter.LinearMipmapLinear = ["LinearMipmapLinear",5];
+haxor.core.TextureFilter.LinearMipmapLinear.toString = $estr;
 haxor.core.TextureFilter.LinearMipmapLinear.__enum__ = haxor.core.TextureFilter;
 haxor.core.TextureFilter.Trilinear = ["Trilinear",6];
+haxor.core.TextureFilter.Trilinear.toString = $estr;
 haxor.core.TextureFilter.Trilinear.__enum__ = haxor.core.TextureFilter;
 haxor.core.TextureWrap = function() { };
 $hxClasses["haxor.core.TextureWrap"] = haxor.core.TextureWrap;
 haxor.core.TextureWrap.__name__ = ["haxor","core","TextureWrap"];
 haxor.core.TextureType = { __ename__ : true, __constructs__ : ["None","Texture2D","TextureCube","RenderTexture","Compute"] };
 haxor.core.TextureType.None = ["None",0];
+haxor.core.TextureType.None.toString = $estr;
 haxor.core.TextureType.None.__enum__ = haxor.core.TextureType;
 haxor.core.TextureType.Texture2D = ["Texture2D",1];
+haxor.core.TextureType.Texture2D.toString = $estr;
 haxor.core.TextureType.Texture2D.__enum__ = haxor.core.TextureType;
 haxor.core.TextureType.TextureCube = ["TextureCube",2];
+haxor.core.TextureType.TextureCube.toString = $estr;
 haxor.core.TextureType.TextureCube.__enum__ = haxor.core.TextureType;
 haxor.core.TextureType.RenderTexture = ["RenderTexture",3];
+haxor.core.TextureType.RenderTexture.toString = $estr;
 haxor.core.TextureType.RenderTexture.__enum__ = haxor.core.TextureType;
 haxor.core.TextureType.Compute = ["Compute",4];
+haxor.core.TextureType.Compute.toString = $estr;
 haxor.core.TextureType.Compute.__enum__ = haxor.core.TextureType;
 haxor.core.ClearFlag = function() { };
 $hxClasses["haxor.core.ClearFlag"] = haxor.core.ClearFlag;
 haxor.core.ClearFlag.__name__ = ["haxor","core","ClearFlag"];
 haxor.core.InputState = { __ename__ : true, __constructs__ : ["None","Down","Up","Hold"] };
 haxor.core.InputState.None = ["None",0];
+haxor.core.InputState.None.toString = $estr;
 haxor.core.InputState.None.__enum__ = haxor.core.InputState;
 haxor.core.InputState.Down = ["Down",1];
+haxor.core.InputState.Down.toString = $estr;
 haxor.core.InputState.Down.__enum__ = haxor.core.InputState;
 haxor.core.InputState.Up = ["Up",2];
+haxor.core.InputState.Up.toString = $estr;
 haxor.core.InputState.Up.__enum__ = haxor.core.InputState;
 haxor.core.InputState.Hold = ["Hold",3];
+haxor.core.InputState.Hold.toString = $estr;
 haxor.core.InputState.Hold.__enum__ = haxor.core.InputState;
 haxor.core.IRenderable = function() { };
 $hxClasses["haxor.core.IRenderable"] = haxor.core.IRenderable;
@@ -4158,6 +4301,7 @@ haxor.core.Scene.prototype = $extend(haxor.core.Resource.prototype,{
 haxor.core.Stats = function() { };
 $hxClasses["haxor.core.Stats"] = haxor.core.Stats;
 haxor.core.Stats.__name__ = ["haxor","core","Stats"];
+haxor.core.Stats.__properties__ = {get_total:"get_total"}
 haxor.core.Stats.get_total = function() {
 	return haxor.core.Stats.visible + haxor.core.Stats.culled;
 };
@@ -4176,6 +4320,7 @@ haxor.core.Stats.BeginRender = function() {
 haxor.core.Time = function() { };
 $hxClasses["haxor.core.Time"] = haxor.core.Time;
 haxor.core.Time.__name__ = ["haxor","core","Time"];
+haxor.core.Time.__properties__ = {get_frame:"get_frame",get_ups:"get_ups",get_fps:"get_fps",get_elapsed:"get_elapsed",get_framedelta:"get_framedelta",get_delta:"get_delta",get_clock:"get_clock",get_system:"get_system"}
 haxor.core.Time.get_system = function() {
 	return haxor.core.Time.m_system;
 };
@@ -4242,6 +4387,143 @@ haxor.core.Time.Render = function() {
 	haxor.core.Time.m_frame_delta = (haxor.core.Time.m_clock - haxor.core.Time.m_last_frame_clock) * 0.001;
 	haxor.core.Time.m_last_frame_clock = haxor.core.Time.m_clock;
 };
+haxor.core.Tween = function(p_target,p_property,p_value,p_duration,p_delay,p_easing) {
+	if(p_delay == null) p_delay = 0;
+	if(p_duration == null) p_duration = 0.3;
+	haxor.core.Resource.call(this);
+	if(haxor.core.Tween.m_table == null) haxor.core.Tween.m_table = new haxe.ds.ObjectMap();
+	this.m_target = p_target;
+	this.m_property = p_property;
+	this.m_value = p_value;
+	this.m_delay = p_delay;
+	if(this.m_delay > 0) this.m_elapsed = -this.m_delay; else this.m_elapsed = 0;
+	this.m_duration = p_duration;
+	this.m_active = false;
+	this.m_added = false;
+	if(p_easing == null) this.m_easing = function(v) {
+		return v;
+	}; else this.m_easing = p_easing;
+	if(!haxor.core.Tween.m_table.exists(this.m_target)) haxor.core.Tween.m_table.set(this.m_target,[]);
+};
+$hxClasses["haxor.core.Tween"] = haxor.core.Tween;
+haxor.core.Tween.__name__ = ["haxor","core","Tween"];
+haxor.core.Tween.__interfaces__ = [haxor.core.IUpdateable];
+haxor.core.Tween.Add = function(p_target,p_property,p_value,p_duration,p_delay,p_easing) {
+	if(p_delay == null) p_delay = 0;
+	if(p_duration == null) p_duration = 0.3;
+	var t = new haxor.core.Tween(p_target,p_property,p_value,p_duration,p_delay,p_easing);
+	t.Run();
+	return t;
+};
+haxor.core.Tween.Cancel = function(p_target,p_property) {
+	if(p_property == null) p_property = "";
+	if(!haxor.core.Tween.m_table.exists(p_target)) return;
+	var il = haxor.core.Tween.m_table.get(p_target);
+	var _g1 = 0;
+	var _g = il.length;
+	while(_g1 < _g) {
+		var i = _g1++;
+		var t = il[i];
+		if(p_property != "") {
+			if(t.m_property != p_property) continue;
+		}
+		t.Remove();
+	}
+};
+haxor.core.Tween.GetTweens = function(p_target,p_property,p_active_only) {
+	if(p_active_only == null) p_active_only = false;
+	if(p_property == null) p_property = "";
+	var l = [];
+	if(p_target == null) {
+		var it = haxor.core.Tween.m_table.iterator();
+		while(it.hasNext()) {
+			var il = it.next();
+			var _g1 = 0;
+			var _g = il.length;
+			while(_g1 < _g) {
+				var i = _g1++;
+				l.push(il[i]);
+			}
+		}
+	} else {
+		if(!haxor.core.Tween.m_table.exists(p_target)) return [];
+		var il1 = haxor.core.Tween.m_table.get(p_target);
+		var _g11 = 0;
+		var _g2 = il1.length;
+		while(_g11 < _g2) {
+			var i1 = _g11++;
+			var t = il1[i1];
+			if(p_target != null) {
+				if(t.m_target != p_target) continue;
+			}
+			if(p_property != "") {
+				if(t.m_property != p_property) continue;
+			}
+			if(p_active_only) {
+				if(t.m_elapsed < 0) continue;
+			}
+			l.push(t);
+		}
+	}
+	return l;
+};
+haxor.core.Tween.__super__ = haxor.core.Resource;
+haxor.core.Tween.prototype = $extend(haxor.core.Resource.prototype,{
+	Run: function() {
+		this.m_active = true;
+		if(!this.m_added) {
+			haxor.context.EngineContext.update.Add(this);
+			this.m_added = true;
+			haxor.core.Tween.m_table.get(this.m_target).push(this);
+		}
+	}
+	,Pause: function() {
+		this.m_active = false;
+	}
+	,Stop: function() {
+		this.m_elapsed = -this.m_delay;
+		this.m_active = false;
+	}
+	,Remove: function() {
+		if(this.m_added) {
+			haxor.context.EngineContext.update.Remove(this);
+			this.m_added = false;
+		}
+		this.m_active = false;
+		var l = haxor.core.Tween.m_table.get(this.m_target);
+		HxOverrides.remove(l,this);
+	}
+	,OnUpdate: function() {
+		if(!this.m_active) return;
+		if(this.m_elapsed <= 0) {
+			this.m_elapsed += haxor.core.Time.m_delta;
+			if(this.m_elapsed >= 0) {
+				var l = haxor.core.Tween.GetTweens(this.m_target,this.m_property,true);
+				var _g1 = 0;
+				var _g = l.length;
+				while(_g1 < _g) {
+					var i = _g1++;
+					if(l[i] != this) l[i].Remove();
+				}
+				this.m_start = Reflect.getProperty(this.m_target,this.m_property);
+			}
+			return;
+		}
+		var r = haxor.math.Mathf.Clamp01(this.m_duration <= 0?1.0:this.m_elapsed / this.m_duration);
+		this.Sample(r);
+		this.m_elapsed += haxor.core.Time.m_delta;
+		if(this.m_elapsed >= this.m_duration) {
+			this.Sample(1.0);
+			if(this.oncomplete != null) this.oncomplete();
+			this.Remove();
+		}
+	}
+	,Sample: function(p_r) {
+		p_r = this.m_easing(p_r);
+		if(typeof(this.m_value) == "number") Reflect.setProperty(this.m_target,this.m_property,haxor.math.Mathf.Lerp(this.m_start,this.m_value,p_r)); else if(js.Boot.__instanceof(this.m_value,haxor.math.Color)) Reflect.setProperty(this.m_target,this.m_property,haxor.math.Color.Lerp(this.m_start,this.m_value,p_r)); else if(js.Boot.__instanceof(this.m_value,haxor.math.Quaternion)) Reflect.setProperty(this.m_target,this.m_property,haxor.math.Quaternion.Lerp(this.m_start,this.m_value,p_r)); else if(js.Boot.__instanceof(this.m_value,Int)) Reflect.setProperty(this.m_target,this.m_property,haxor.math.Mathf.LerpInt(this.m_start,this.m_value,p_r)); else if(js.Boot.__instanceof(this.m_value,haxor.math.Vector2)) Reflect.setProperty(this.m_target,this.m_property,haxor.math.Vector2.Lerp(this.m_start,this.m_value,p_r)); else if(js.Boot.__instanceof(this.m_value,haxor.math.Vector3)) Reflect.setProperty(this.m_target,this.m_property,haxor.math.Vector3.Lerp(this.m_start,this.m_value,p_r)); else if(js.Boot.__instanceof(this.m_value,haxor.math.Vector4)) Reflect.setProperty(this.m_target,this.m_property,haxor.math.Vector4.Lerp(this.m_start,this.m_value,p_r));
+	}
+	,__class__: haxor.core.Tween
+});
 haxor.dom = {};
 haxor.dom.DOMEntity = function(p_element,p_name) {
 	if(p_name == null) p_name = "";
@@ -4467,6 +4749,7 @@ haxor.dom.DOMEntity.prototype = $extend(haxor.core.Resource.prototype,{
 		}
 	}
 	,__class__: haxor.dom.DOMEntity
+	,__properties__: $extend(haxor.core.Resource.prototype.__properties__,{set_element:"set_element",get_element:"get_element",get_stage:"get_stage",get_parent:"get_parent",get_layout:"get_layout",set_mouseEnabled:"set_mouseEnabled",get_mouseEnabled:"get_mouseEnabled",set_visible:"set_visible",get_visible:"get_visible",set_alpha:"set_alpha",get_alpha:"get_alpha",get_rect:"get_rect",get_mouseY:"get_mouseY",get_mouseX:"get_mouseX",set_rotation:"set_rotation",get_rotation:"get_rotation",set_sy:"set_sy",get_sy:"get_sy",set_sx:"set_sx",get_sx:"get_sx",set_height:"set_height",get_height:"get_height",set_width:"set_width",get_width:"get_width",set_py:"set_py",get_py:"get_py",set_px:"set_px",get_px:"get_px",set_y:"set_y",get_y:"get_y",set_x:"set_x",get_x:"get_x"})
 });
 haxor.dom.Container = function(p_element,p_name) {
 	if(p_name == null) p_name = "";
@@ -4661,6 +4944,7 @@ haxor.dom.Container.prototype = $extend(haxor.dom.DOMEntity.prototype,{
 		}
 	}
 	,__class__: haxor.dom.Container
+	,__properties__: $extend(haxor.dom.DOMEntity.prototype.__properties__,{get_childCount:"get_childCount"})
 });
 haxor.dom.DOMLayout = function(p_element) {
 	this.m_element = p_element;
@@ -4777,6 +5061,7 @@ haxor.dom.DOMLayout.prototype = {
 		this.m_lock = false;
 	}
 	,__class__: haxor.dom.DOMLayout
+	,__properties__: {set_margin:"set_margin",get_margin:"get_margin",set_flag:"set_flag",get_flag:"get_flag",set_height:"set_height",get_height:"get_height",set_width:"set_width",get_width:"get_width",set_y:"set_y",get_y:"get_y",set_x:"set_x",get_x:"get_x",set_py:"set_py",get_py:"get_py",set_px:"set_px",get_px:"get_px"}
 };
 haxor.dom.DOMStage = function(p_container) {
 	haxor.dom.DOMStage.m_instance = this;
@@ -4822,7 +5107,6 @@ haxor.dom.DOMStage.BuildStep = function(n,p) {
 };
 haxor.dom.DOMStage.BuildSprite = function(n) {
 	var a_src = haxor.dom.DOMStage._ss(n.getAttribute("src"));
-	console.log(">> " + a_src);
 	var a_canvas = n.getAttribute("canvas") != null;
 	var a_pattern = n.getAttribute("pattern") != null;
 	var res = new haxor.dom.Sprite(a_src,a_canvas);
@@ -5210,6 +5494,7 @@ haxor.dom.Sprite.prototype = $extend(haxor.dom.Container.prototype,{
 		}
 	}
 	,__class__: haxor.dom.Sprite
+	,__properties__: $extend(haxor.dom.Container.prototype.__properties__,{set_pattern:"set_pattern",get_pattern:"get_pattern",set_image:"set_image",get_image:"get_image",set_slices:"set_slices",get_slices:"get_slices"})
 });
 haxor.ds = {};
 haxor.ds.SAP = function(p_bias,p_has_query) {
@@ -5451,6 +5736,7 @@ haxor.graphics = {};
 haxor.graphics.GL = function() { };
 $hxClasses["haxor.graphics.GL"] = haxor.graphics.GL;
 haxor.graphics.GL.__name__ = ["haxor","graphics","GL"];
+haxor.graphics.GL.__properties__ = {get_api:"get_api"}
 haxor.graphics.GL.get_api = function() {
 	return haxor.graphics.GL.m_gl.get_api();
 };
@@ -5728,12 +6014,16 @@ haxor.graphics.GL.Focus = function() {
 };
 haxor.graphics.GraphicAPI = { __ename__ : true, __constructs__ : ["None","OpenGL","OpenGLES","WebGL"] };
 haxor.graphics.GraphicAPI.None = ["None",0];
+haxor.graphics.GraphicAPI.None.toString = $estr;
 haxor.graphics.GraphicAPI.None.__enum__ = haxor.graphics.GraphicAPI;
 haxor.graphics.GraphicAPI.OpenGL = ["OpenGL",1];
+haxor.graphics.GraphicAPI.OpenGL.toString = $estr;
 haxor.graphics.GraphicAPI.OpenGL.__enum__ = haxor.graphics.GraphicAPI;
 haxor.graphics.GraphicAPI.OpenGLES = ["OpenGLES",2];
+haxor.graphics.GraphicAPI.OpenGLES.toString = $estr;
 haxor.graphics.GraphicAPI.OpenGLES.__enum__ = haxor.graphics.GraphicAPI;
 haxor.graphics.GraphicAPI.WebGL = ["WebGL",3];
+haxor.graphics.GraphicAPI.WebGL.toString = $estr;
 haxor.graphics.GraphicAPI.WebGL.__enum__ = haxor.graphics.GraphicAPI;
 haxor.graphics.GraphicContext = function(p_application) {
 	this.m_api = haxor.graphics.GraphicAPI.None;
@@ -5962,6 +6252,7 @@ haxor.graphics.GraphicContext.prototype = {
 		haxor.core.Console.Log(this.GetError());
 	}
 	,__class__: haxor.graphics.GraphicContext
+	,__properties__: {get_api:"get_api"}
 };
 haxor.math.AABB2 = function(p_x,p_y,p_width,p_height) {
 	if(p_height == null) p_height = 0;
@@ -5972,6 +6263,7 @@ haxor.math.AABB2 = function(p_x,p_y,p_width,p_height) {
 };
 $hxClasses["haxor.math.AABB2"] = haxor.math.AABB2;
 haxor.math.AABB2.__name__ = ["haxor","math","AABB2"];
+haxor.math.AABB2.__properties__ = {get_empty:"get_empty",get_temp:"get_temp"}
 haxor.math.AABB2.get_temp = function() {
 	return haxor.context.EngineContext.data.get_aabb2();
 };
@@ -6143,6 +6435,7 @@ haxor.math.AABB2.prototype = {
 		return "[" + s0 + "," + s1 + "|" + s2 + "," + s3 + "]";
 	}
 	,__class__: haxor.math.AABB2
+	,__properties__: {set_size:"set_size",get_size:"get_size",set_height:"set_height",get_height:"get_height",set_width:"set_width",get_width:"get_width",set_y:"set_y",get_y:"get_y",set_x:"set_x",get_x:"get_x",set_center:"set_center",get_center:"get_center",set_yMax:"set_yMax",get_yMax:"get_yMax",set_xMax:"set_xMax",get_xMax:"get_xMax",set_yMin:"set_yMin",get_yMin:"get_yMin",set_xMin:"set_xMin",get_xMin:"get_xMin",set_max:"set_max",get_max:"get_max",set_min:"set_min",get_min:"get_min",get_clone:"get_clone"}
 };
 haxor.graphics.Graphics = function() { };
 $hxClasses["haxor.graphics.Graphics"] = haxor.graphics.Graphics;
@@ -6193,6 +6486,7 @@ haxor.graphics.Graphics.DrawTexture = function(p_texture,p_x,p_y,p_width,p_heigh
 haxor.graphics.Screen = function() { };
 $hxClasses["haxor.graphics.Screen"] = haxor.graphics.Screen;
 haxor.graphics.Screen.__name__ = ["haxor","graphics","Screen"];
+haxor.graphics.Screen.__properties__ = {set_cursor:"set_cursor",get_cursor:"get_cursor",set_fullscreen:"set_fullscreen",get_fullscreen:"get_fullscreen",get_height:"get_height",get_width:"get_width"}
 haxor.graphics.Screen.get_width = function() {
 	return haxor.graphics.Screen.m_width;
 };
@@ -6230,10 +6524,13 @@ haxor.graphics.Screen.Initialize = function(p_application) {
 };
 haxor.graphics.CursorMode = { __ename__ : true, __constructs__ : ["Show","Hide","Lock"] };
 haxor.graphics.CursorMode.Show = ["Show",0];
+haxor.graphics.CursorMode.Show.toString = $estr;
 haxor.graphics.CursorMode.Show.__enum__ = haxor.graphics.CursorMode;
 haxor.graphics.CursorMode.Hide = ["Hide",1];
+haxor.graphics.CursorMode.Hide.toString = $estr;
 haxor.graphics.CursorMode.Hide.__enum__ = haxor.graphics.CursorMode;
 haxor.graphics.CursorMode.Lock = ["Lock",2];
+haxor.graphics.CursorMode.Lock.toString = $estr;
 haxor.graphics.CursorMode.Lock.__enum__ = haxor.graphics.CursorMode;
 haxor.graphics.material = {};
 haxor.graphics.material.Material = function(p_name) {
@@ -6474,6 +6771,7 @@ haxor.graphics.material.Material.prototype = $extend(haxor.core.Resource.prototy
 		haxor.context.EngineContext.material.DestroyMaterial(this);
 	}
 	,__class__: haxor.graphics.material.Material
+	,__properties__: $extend(haxor.core.Resource.prototype.__properties__,{set_shader:"set_shader",get_shader:"get_shader"})
 });
 haxor.graphics.material.MaterialUniform = function(p_name,p_is_float,p_length,p_offset) {
 	this.__cid = haxor.context.EngineContext.material.uid.get_id();
@@ -6724,6 +7022,7 @@ haxor.graphics.material.Shader = function(p_source) {
 };
 $hxClasses["haxor.graphics.material.Shader"] = haxor.graphics.material.Shader;
 haxor.graphics.material.Shader.__name__ = ["haxor","graphics","material","Shader"];
+haxor.graphics.material.Shader.__properties__ = {get_FlatTextureSkin:"get_FlatTextureSkin",get_FlatTexture:"get_FlatTexture",get_Flat:"get_Flat"}
 haxor.graphics.material.Shader.get_Flat = function() {
 	if(haxor.graphics.material.Shader.m_flat_shader == null) return haxor.graphics.material.Shader.m_flat_shader = new haxor.graphics.material.Shader(haxor.context.ShaderContext.flat_source); else return haxor.graphics.material.Shader.m_flat_shader;
 };
@@ -6759,6 +7058,7 @@ haxor.graphics.material.Shader.prototype = $extend(haxor.core.Resource.prototype
 		haxor.context.EngineContext.material.DestroyShader(this);
 	}
 	,__class__: haxor.graphics.material.Shader
+	,__properties__: $extend(haxor.core.Resource.prototype.__properties__,{get_hasError:"get_hasError"})
 });
 haxor.graphics.material.UberShader = function(p_source) {
 	haxor.graphics.material.Shader.call(this,p_source);
@@ -6931,6 +7231,7 @@ haxor.graphics.mesh.Mesh.prototype = $extend(haxor.core.Resource.prototype,{
 		haxor.context.EngineContext.mesh.mid.set_id(this.__cid);
 	}
 	,__class__: haxor.graphics.mesh.Mesh
+	,__properties__: $extend(haxor.core.Resource.prototype.__properties__,{set_bounds:"set_bounds",get_bounds:"get_bounds",get_vcount:"get_vcount",get_attribs:"get_attribs",set_mode:"set_mode",get_mode:"get_mode",get_indexed:"get_indexed",set_topology:"set_topology",get_topology:"get_topology"})
 });
 haxor.graphics.mesh.MeshAttrib = function() {
 	this.__cid = haxor.context.EngineContext.mesh.aid.get_id();
@@ -6949,6 +7250,7 @@ haxor.graphics.mesh.MeshAttrib.prototype = {
 		if(this.data == null) return 0; else return this.data.m_length / this.offset | 0;
 	}
 	,__class__: haxor.graphics.mesh.MeshAttrib
+	,__properties__: {get_count:"get_count",get_name:"get_name"}
 };
 haxor.graphics.texture = {};
 haxor.graphics.texture.Bitmap = function(p_width,p_height,p_format) {
@@ -7173,6 +7475,7 @@ haxor.graphics.texture.Bitmap.prototype = $extend(haxor.core.Resource.prototype,
 		}
 	}
 	,__class__: haxor.graphics.texture.Bitmap
+	,__properties__: $extend(haxor.core.Resource.prototype.__properties__,{get_format:"get_format",get_channels:"get_channels",get_height:"get_height",get_width:"get_width",get_float:"get_float",get_buffer:"get_buffer"})
 });
 haxor.graphics.texture.Texture = function() {
 	haxor.core.Resource.call(this);
@@ -7254,6 +7557,7 @@ haxor.graphics.texture.Texture.prototype = $extend(haxor.core.Resource.prototype
 		haxor.context.EngineContext.texture.Destroy(this);
 	}
 	,__class__: haxor.graphics.texture.Texture
+	,__properties__: $extend(haxor.core.Resource.prototype.__properties__,{get_type:"get_type",get_mipmaps:"get_mipmaps",set_magFilter:"set_magFilter",get_magFilter:"get_magFilter",set_minFilter:"set_minFilter",get_minFilter:"get_minFilter",set_aniso:"set_aniso",get_aniso:"get_aniso",set_wrap:"set_wrap",get_wrap:"get_wrap",get_format:"get_format",get_height:"get_height",get_width:"get_width"})
 });
 haxor.graphics.texture.Texture2D = function(p_width,p_height,p_format) {
 	haxor.graphics.texture.Texture.call(this);
@@ -7267,6 +7571,7 @@ haxor.graphics.texture.Texture2D = function(p_width,p_height,p_format) {
 };
 $hxClasses["haxor.graphics.texture.Texture2D"] = haxor.graphics.texture.Texture2D;
 haxor.graphics.texture.Texture2D.__name__ = ["haxor","graphics","texture","Texture2D"];
+haxor.graphics.texture.Texture2D.__properties__ = {get_random:"get_random",get_green:"get_green",get_red:"get_red",get_black:"get_black",get_white:"get_white"}
 haxor.graphics.texture.Texture2D.get_white = function() {
 	if(haxor.graphics.texture.Texture2D.m_white != null) return haxor.graphics.texture.Texture2D.m_white;
 	haxor.graphics.texture.Texture2D.m_white = new haxor.graphics.texture.Texture2D(1,1,haxor.core.PixelFormat.RGB8);
@@ -7340,6 +7645,7 @@ haxor.graphics.texture.Texture2D.prototype = $extend(haxor.graphics.texture.Text
 		haxor.context.EngineContext.texture.UploadTexture(this,0,0,this.m_width,this.m_height,p_steps,p_on_complete);
 	}
 	,__class__: haxor.graphics.texture.Texture2D
+	,__properties__: $extend(haxor.graphics.texture.Texture.prototype.__properties__,{get_data:"get_data"})
 });
 haxor.graphics.texture.ComputeTexture = function(p_width,p_height,p_format) {
 	haxor.graphics.texture.Texture2D.call(this,p_width,p_height,p_format);
@@ -7408,6 +7714,7 @@ haxor.graphics.texture.RenderTexture.prototype = $extend(haxor.graphics.texture.
 		return haxor.core.TextureType.RenderTexture;
 	}
 	,__class__: haxor.graphics.texture.RenderTexture
+	,__properties__: $extend(haxor.graphics.texture.Texture.prototype.__properties__,{get_depth:"get_depth"})
 });
 haxor.graphics.texture.TextureCube = function() {
 	this.m_faces = [null,null,null,null,null,null];
@@ -7489,11 +7796,13 @@ haxor.graphics.texture.TextureCube.prototype = $extend(haxor.graphics.texture.Te
 		}
 	}
 	,__class__: haxor.graphics.texture.TextureCube
+	,__properties__: $extend(haxor.graphics.texture.Texture.prototype.__properties__,{set_nz:"set_nz",get_nz:"get_nz",set_pz:"set_pz",get_pz:"get_pz",set_ny:"set_ny",get_ny:"get_ny",set_py:"set_py",get_py:"get_py",set_nx:"set_nx",get_nx:"get_nx",set_px:"set_px",get_px:"get_px"})
 });
 haxor.input = {};
 haxor.input.Input = function() { };
 $hxClasses["haxor.input.Input"] = haxor.input.Input;
 haxor.input.Input.__name__ = ["haxor","input","Input"];
+haxor.input.Input.__properties__ = {get_multitouch:"get_multitouch",get_joystick:"get_joystick",get_touches:"get_touches"}
 haxor.input.Input.get_touches = function() {
 	return haxor.input.Input.m_touches;
 };
@@ -7877,6 +8186,7 @@ haxor.input.Joystick.prototype = {
 		return s;
 	}
 	,__class__: haxor.input.Joystick
+	,__properties__: {set_vibrationRight:"set_vibrationRight",get_vibrationRight:"get_vibrationRight",set_vibrationLeft:"set_vibrationLeft",get_vibrationLeft:"get_vibrationLeft"}
 };
 haxor.input.KeyCode = function() { };
 $hxClasses["haxor.input.KeyCode"] = haxor.input.KeyCode;
@@ -8018,6 +8328,7 @@ haxor.io.Buffer.prototype = {
 		this.aux = this.orig;
 	}
 	,__class__: haxor.io.Buffer
+	,__properties__: {get_length:"get_length",get_bytesPerElement:"get_bytesPerElement",get_byteLength:"get_byteLength",get_buffer:"get_buffer"}
 };
 haxor.io.FloatArray = function(p_length) {
 	haxor.io.Buffer.call(this,p_length);
@@ -8232,6 +8543,7 @@ haxor.math.AABB3 = function(p_x,p_y,p_z,p_width,p_height,p_depth) {
 };
 $hxClasses["haxor.math.AABB3"] = haxor.math.AABB3;
 haxor.math.AABB3.__name__ = ["haxor","math","AABB3"];
+haxor.math.AABB3.__properties__ = {get_empty:"get_empty",get_temp:"get_temp"}
 haxor.math.AABB3.get_temp = function() {
 	return haxor.context.EngineContext.data.get_aabb3();
 };
@@ -8500,6 +8812,61 @@ haxor.math.AABB3.prototype = {
 		return "[" + s0 + "," + s1 + "|" + s2 + "," + s3 + "|" + s4 + "," + s5 + "]";
 	}
 	,__class__: haxor.math.AABB3
+	,__properties__: {set_size:"set_size",get_size:"get_size",set_depth:"set_depth",get_depth:"get_depth",set_height:"set_height",get_height:"get_height",set_width:"set_width",get_width:"get_width",set_z:"set_z",get_z:"get_z",set_y:"set_y",get_y:"get_y",set_x:"set_x",get_x:"get_x",set_center:"set_center",get_center:"get_center",set_zMax:"set_zMax",get_zMax:"get_zMax",set_yMax:"set_yMax",get_yMax:"get_yMax",set_xMax:"set_xMax",get_xMax:"get_xMax",set_zMin:"set_zMin",get_zMin:"get_zMin",set_yMin:"set_yMin",get_yMin:"get_yMin",set_xMin:"set_xMin",get_xMin:"get_xMin",set_max:"set_max",get_max:"get_max",set_min:"set_min",get_min:"get_min",get_clone:"get_clone"}
+};
+haxor.math.Easing = function() { };
+$hxClasses["haxor.math.Easing"] = haxor.math.Easing;
+haxor.math.Easing.__name__ = ["haxor","math","Easing"];
+haxor.math.Trig = function() { };
+$hxClasses["haxor.math.Trig"] = haxor.math.Trig;
+haxor.math.Trig.__name__ = ["haxor","math","Trig"];
+haxor.math.Trig.Acos = function(v) {
+	return Math.acos(-2 * v + 1.0) * 0.31830988618379067153776752674503;
+};
+haxor.math.Trig.AcosQuad = function(v) {
+	return haxor.math.Mathf.Pow(haxor.math.Trig.Acos(v),2.0);
+};
+haxor.math.Trig.AcosRad = function(v) {
+	return haxor.math.Mathf.Pow(haxor.math.Trig.Acos(v),0.5);
+};
+haxor.math.Trig.Cos = function(v) {
+	return (-Math.cos(v * 3.1415926535897932384626433832795028841971693993751058) + 1.0) * 0.5;
+};
+haxor.math.Cubic = function() { };
+$hxClasses["haxor.math.Cubic"] = haxor.math.Cubic;
+haxor.math.Cubic.__name__ = ["haxor","math","Cubic"];
+haxor.math.Cubic.In = function(p_r) {
+	return p_r * p_r * p_r;
+};
+haxor.math.Cubic.Out = function(p_r) {
+	return p_r * (p_r * (p_r - 3) + 3);
+};
+haxor.math.Cubic.InOut = function(p_r) {
+	return -2 * p_r * (p_r * (p_r - 1.5));
+};
+haxor.math.Cubic.OutIn = function(p_r) {
+	return p_r * (p_r * (4 * p_r - 6) + 3);
+};
+haxor.math.Cubic.BackIn = function(p_r) {
+	return p_r * (p_r * (4 * p_r - 3));
+};
+haxor.math.Cubic.OutBack = function(p_r) {
+	return p_r * (p_r * (4 * p_r - 9) + 6);
+};
+haxor.math.Elastic = function() { };
+$hxClasses["haxor.math.Elastic"] = haxor.math.Elastic;
+haxor.math.Elastic.__name__ = ["haxor","math","Elastic"];
+haxor.math.Elastic.OutBig = function(p_r) {
+	return p_r * (p_r * (p_r * (p_r * (56 * p_r + -175) + 200) + -100) + 20);
+};
+haxor.math.Elastic.OutSmall = function(p_r) {
+	return p_r * (p_r * (p_r * (p_r * (33 * p_r + -106) + 126) + -67) + 15);
+};
+haxor.math.Elastic.InBig = function(p_r) {
+	return p_r * (p_r * (p_r * (p_r * (33 * p_r + -59) + 32) + -5));
+};
+haxor.math.Elastic.InSmall = function(p_r) {
+	return p_r * (p_r * (p_r * (p_r * (56 * p_r + -105) + 60) + -10));
 };
 haxor.math.Mathf = function() { };
 $hxClasses["haxor.math.Mathf"] = haxor.math.Mathf;
@@ -8577,10 +8944,10 @@ haxor.math.Mathf.Sin = function(v) {
 haxor.math.Mathf.Cos = function(v) {
 	return Math.cos(v);
 };
-haxor.math.Mathf.ASin = function(v) {
+haxor.math.Mathf.Asin = function(v) {
 	return Math.asin(v);
 };
-haxor.math.Mathf.ACos = function(v) {
+haxor.math.Mathf.Acos = function(v) {
 	return Math.acos(v);
 };
 haxor.math.Mathf.Tan = function(v) {
@@ -8679,6 +9046,7 @@ haxor.math.Matrix4 = function(p_m00,p_m01,p_m02,p_m03,p_m10,p_m11,p_m12,p_m13,p_
 };
 $hxClasses["haxor.math.Matrix4"] = haxor.math.Matrix4;
 haxor.math.Matrix4.__name__ = ["haxor","math","Matrix4"];
+haxor.math.Matrix4.__properties__ = {get_identity:"get_identity",get_temp:"get_temp"}
 haxor.math.Matrix4.get_temp = function() {
 	return haxor.context.EngineContext.data.get_m4();
 };
@@ -9456,6 +9824,7 @@ haxor.math.Matrix4.prototype = {
 		return res;
 	}
 	,__class__: haxor.math.Matrix4
+	,__properties__: {set_diagonalLR:"set_diagonalLR",get_diagonalLR:"get_diagonalLR",get_transposed:"get_transposed",get_inverseTransform:"get_inverseTransform",get_translation:"get_translation",get_scale:"get_scale",get_rotation:"get_rotation",get_trace:"get_trace",set_quaternion:"set_quaternion",get_quaternion:"get_quaternion",get_clone:"get_clone"}
 };
 haxor.math.Quaternion = function(p_x,p_y,p_z,p_w) {
 	if(p_w == null) p_w = 1.0;
@@ -9469,6 +9838,7 @@ haxor.math.Quaternion = function(p_x,p_y,p_z,p_w) {
 };
 $hxClasses["haxor.math.Quaternion"] = haxor.math.Quaternion;
 haxor.math.Quaternion.__name__ = ["haxor","math","Quaternion"];
+haxor.math.Quaternion.__properties__ = {get_identity:"get_identity",get_temp:"get_temp"}
 haxor.math.Quaternion.get_temp = function() {
 	return haxor.context.EngineContext.data.get_q();
 };
@@ -9764,10 +10134,12 @@ haxor.math.Quaternion.prototype = {
 		return "[" + haxor.math.Mathf.RoundPlaces(this.x,p_places) + "," + haxor.math.Mathf.RoundPlaces(this.y,p_places) + "," + haxor.math.Mathf.RoundPlaces(this.z,p_places) + "," + haxor.math.Mathf.RoundPlaces(this.w,p_places) + "]";
 	}
 	,__class__: haxor.math.Quaternion
+	,__properties__: {get_inverse:"get_inverse",get_conjugate:"get_conjugate",get_normalized:"get_normalized",get_length:"get_length",get_xyzw:"get_xyzw",get_clone:"get_clone",set_euler:"set_euler",get_euler:"get_euler",set_matrix:"set_matrix",get_matrix:"get_matrix"}
 };
 haxor.math.Random = function() { };
 $hxClasses["haxor.math.Random"] = haxor.math.Random;
 haxor.math.Random.__name__ = ["haxor","math","Random"];
+haxor.math.Random.__properties__ = {get_onCircle:"get_onCircle",get_circle:"get_circle",get_onSphere:"get_onSphere",get_sphere:"get_sphere",get_onSquare:"get_onSquare",get_square:"get_square",get_onBox:"get_onBox",get_box:"get_box",get_rotation:"get_rotation",get_interval:"get_interval",get_value:"get_value"}
 haxor.math.Random.get_value = function() {
 	return Math.random();
 };
@@ -9855,6 +10227,7 @@ haxor.math.Vector2 = function(p_x,p_y) {
 };
 $hxClasses["haxor.math.Vector2"] = haxor.math.Vector2;
 haxor.math.Vector2.__name__ = ["haxor","math","Vector2"];
+haxor.math.Vector2.__properties__ = {get_up:"get_up",get_right:"get_right",get_one:"get_one",get_zero:"get_zero",get_temp:"get_temp"}
 haxor.math.Vector2.get_temp = function() {
 	return haxor.context.EngineContext.data.get_v2();
 };
@@ -9988,6 +10361,7 @@ haxor.math.Vector2.prototype = {
 		return "[" + haxor.math.Mathf.RoundPlaces(this.x,p_places) + "," + haxor.math.Mathf.RoundPlaces(this.y,p_places) + "]";
 	}
 	,__class__: haxor.math.Vector2
+	,__properties__: {get_inverse:"get_inverse",get_normalized:"get_normalized",get_lengthSqr:"get_lengthSqr",get_length:"get_length",get_yx:"get_yx",get_xy:"get_xy",get_clone:"get_clone"}
 };
 haxor.math.Vector3 = function(p_x,p_y,p_z) {
 	if(p_z == null) p_z = 0;
@@ -9999,6 +10373,7 @@ haxor.math.Vector3 = function(p_x,p_y,p_z) {
 };
 $hxClasses["haxor.math.Vector3"] = haxor.math.Vector3;
 haxor.math.Vector3.__name__ = ["haxor","math","Vector3"];
+haxor.math.Vector3.__properties__ = {get_forward:"get_forward",get_up:"get_up",get_right:"get_right",get_one:"get_one",get_zero:"get_zero",get_temp:"get_temp"}
 haxor.math.Vector3.get_temp = function() {
 	return haxor.context.EngineContext.data.get_v3();
 };
@@ -10216,6 +10591,7 @@ haxor.math.Vector3.prototype = {
 		return "[" + haxor.math.Mathf.RoundPlaces(this.x,p_places) + "," + haxor.math.Mathf.RoundPlaces(this.y,p_places) + "," + haxor.math.Mathf.RoundPlaces(this.z,p_places) + "]";
 	}
 	,__class__: haxor.math.Vector3
+	,__properties__: {get_inverse:"get_inverse",get_normalized:"get_normalized",get_lengthSqr:"get_lengthSqr",get_length:"get_length",get_zy:"get_zy",get_zx:"get_zx",get_yz:"get_yz",get_yx:"get_yx",get_xz:"get_xz",get_xy:"get_xy",get_zyx:"get_zyx",get_zxy:"get_zxy",get_yzx:"get_yzx",get_yxz:"get_yxz",get_xzy:"get_xzy",get_color:"get_color",get_clone:"get_clone"}
 };
 haxor.math.Vector4 = function(p_x,p_y,p_z,p_w) {
 	if(p_w == null) p_w = 0;
@@ -10229,6 +10605,7 @@ haxor.math.Vector4 = function(p_x,p_y,p_z,p_w) {
 };
 $hxClasses["haxor.math.Vector4"] = haxor.math.Vector4;
 haxor.math.Vector4.__name__ = ["haxor","math","Vector4"];
+haxor.math.Vector4.__properties__ = {get_W:"get_W",get_one:"get_one",get_zero:"get_zero",get_temp:"get_temp"}
 haxor.math.Vector4.get_temp = function() {
 	return haxor.context.EngineContext.data.get_v4();
 };
@@ -10359,6 +10736,7 @@ haxor.math.Vector4.prototype = {
 		return "[" + haxor.math.Mathf.RoundPlaces(this.x,p_places) + "," + haxor.math.Mathf.RoundPlaces(this.y,p_places) + "," + haxor.math.Mathf.RoundPlaces(this.z,p_places) + "," + haxor.math.Mathf.RoundPlaces(this.w,p_places) + "]";
 	}
 	,__class__: haxor.math.Vector4
+	,__properties__: {get_normalized:"get_normalized",get_lengthSqr:"get_lengthSqr",get_length:"get_length",get_xy:"get_xy",get_xyz:"get_xyz",get_rgb:"get_rgb",get_rgba:"get_rgba",get_clone:"get_clone"}
 };
 haxor.platform.html.Entry = function() { };
 $hxClasses["haxor.platform.html.Entry"] = haxor.platform.html.Entry;
@@ -11080,6 +11458,7 @@ haxor.thread.Activity.prototype = $extend(haxor.core.Resource.prototype,{
 		if(!this.m_callback(this.m_elapsed)) haxor.core.Resource.Destroy(this);
 	}
 	,__class__: haxor.thread.Activity
+	,__properties__: $extend(haxor.core.Resource.prototype.__properties__,{get_elapsed:"get_elapsed"})
 });
 var js = {};
 js.Boot = function() { };
@@ -11229,9 +11608,100 @@ tldc.client.TLDC.main = function() {
 tldc.client.TLDC.__super__ = haxor.core.Application;
 tldc.client.TLDC.prototype = $extend(haxor.core.Application.prototype,{
 	Initialize: function() {
-		console.log("TLDC> Init");
+		haxor.core.Console.Log("TLDC> Init",1);
+		this.view = new tldc.client.view.TLDCView();
+		this.controller = new tldc.client.controller.TLDCController();
 	}
 	,__class__: tldc.client.TLDC
+});
+tldc.client.TLDCResource = function() {
+	haxor.core.Resource.call(this);
+};
+$hxClasses["tldc.client.TLDCResource"] = tldc.client.TLDCResource;
+tldc.client.TLDCResource.__name__ = ["tldc","client","TLDCResource"];
+tldc.client.TLDCResource.__super__ = haxor.core.Resource;
+tldc.client.TLDCResource.prototype = $extend(haxor.core.Resource.prototype,{
+	get_app: function() {
+		return this.get_application();
+	}
+	,__class__: tldc.client.TLDCResource
+	,__properties__: $extend(haxor.core.Resource.prototype.__properties__,{get_app:"get_app"})
+});
+tldc.client.controller = {};
+tldc.client.controller.TLDCController = function() {
+	tldc.client.TLDCResource.call(this);
+	haxor.core.Console.Log("TLDCController> Init",1);
+	window.onhashchange = $bind(this,this.OnHashChange);
+	this.get_app().view.header.Show();
+	haxe.Timer.delay($bind(this,this.Run),200);
+};
+$hxClasses["tldc.client.controller.TLDCController"] = tldc.client.controller.TLDCController;
+tldc.client.controller.TLDCController.__name__ = ["tldc","client","controller","TLDCController"];
+tldc.client.controller.TLDCController.__super__ = tldc.client.TLDCResource;
+tldc.client.controller.TLDCController.prototype = $extend(tldc.client.TLDCResource.prototype,{
+	Run: function() {
+		haxor.core.Console.Log("TLDCController> Run [" + window.location.hash + "]",1);
+		this.ApplyHash(window.location.hash);
+	}
+	,ApplyHash: function(p_hash) {
+		if(p_hash == "") return;
+	}
+	,OnHashChange: function(p_event) {
+		this.ApplyHash(window.location.hash);
+	}
+	,__class__: tldc.client.controller.TLDCController
+});
+tldc.client.view = {};
+tldc.client.view.HeaderView = function() {
+	tldc.client.TLDCResource.call(this);
+	this.container = this.get_application().get_stage().Find("content.header");
+};
+$hxClasses["tldc.client.view.HeaderView"] = tldc.client.view.HeaderView;
+tldc.client.view.HeaderView.__name__ = ["tldc","client","view","HeaderView"];
+tldc.client.view.HeaderView.__super__ = tldc.client.TLDCResource;
+tldc.client.view.HeaderView.prototype = $extend(tldc.client.TLDCResource.prototype,{
+	Show: function() {
+		haxor.core.Tween.Add(this.container.get_layout(),"py",0.0,0.5,1.0,haxor.math.Cubic.Out);
+	}
+	,__class__: tldc.client.view.HeaderView
+});
+tldc.client.view.SectionView = function() {
+	var _g = this;
+	tldc.client.TLDCResource.call(this);
+	this.container = this.get_app().get_stage().Find("content.section");
+	haxor.thread.Activity.Run(function(t) {
+		if(haxor.input.Input.Down(haxor.input.KeyCode.D1)) _g.ChangeSection("A");
+		if(haxor.input.Input.Down(haxor.input.KeyCode.D2)) _g.ChangeSection("B");
+		if(haxor.input.Input.Down(haxor.input.KeyCode.D3)) _g.ChangeSection("C");
+		return true;
+	});
+};
+$hxClasses["tldc.client.view.SectionView"] = tldc.client.view.SectionView;
+tldc.client.view.SectionView.__name__ = ["tldc","client","view","SectionView"];
+tldc.client.view.SectionView.__super__ = tldc.client.TLDCResource;
+tldc.client.view.SectionView.prototype = $extend(tldc.client.TLDCResource.prototype,{
+	ChangeSection: function(p_name) {
+		var s = this.container.GetChildByName(p_name);
+		if(s == null) {
+			haxor.core.Console.Log("SectionView> Section [" + p_name + "] not found!",1);
+			return;
+		}
+		var v = s.get_layout().get_x();
+		haxor.core.Tween.Add(this.container.get_layout(),"x",-v,0.5,0.0,haxor.math.Cubic.Out);
+	}
+	,__class__: tldc.client.view.SectionView
+});
+tldc.client.view.TLDCView = function() {
+	tldc.client.TLDCResource.call(this);
+	haxor.core.Console.Log("TLDCView> Init",1);
+	this.header = new tldc.client.view.HeaderView();
+	this.section = new tldc.client.view.SectionView();
+};
+$hxClasses["tldc.client.view.TLDCView"] = tldc.client.view.TLDCView;
+tldc.client.view.TLDCView.__name__ = ["tldc","client","view","TLDCView"];
+tldc.client.view.TLDCView.__super__ = tldc.client.TLDCResource;
+tldc.client.view.TLDCView.prototype = $extend(tldc.client.TLDCResource.prototype,{
+	__class__: tldc.client.view.TLDCView
 });
 var $_, $fid = 0;
 function $bind(o,m) { if( m == null ) return null; if( m.__id__ == null ) m.__id__ = $fid++; var f; if( o.hx__closures__ == null ) o.hx__closures__ = {}; else f = o.hx__closures__[m.__id__]; if( f == null ) { f = function(){ return f.method.apply(f.scope, arguments); }; f.scope = o; f.method = m; o.hx__closures__[m.__id__] = f; } return f; }
@@ -11271,6 +11741,7 @@ Xml.ProcessingInstruction = "processingInstruction";
 Xml.Document = "document";
 haxe.crypto.Base64.CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 haxe.crypto.Base64.BYTES = haxe.io.Bytes.ofString(haxe.crypto.Base64.CHARS);
+haxe.ds.ObjectMap.count = 0;
 haxe.xml.Parser.escapes = (function($this) {
 	var $r;
 	var h = new haxe.ds.StringMap();
