@@ -40,8 +40,9 @@ class TLDC extends Application
 		Console.Log("TLDC> Init",1);
 		
 		view 		= new TLDCView();
-		controller  = new TLDCController();
 		model		= new TLDCModel();
+		controller  = new TLDCController();
+		
 		
 		controller.Run();
 	}

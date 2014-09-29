@@ -13605,8 +13605,8 @@ tldc.client.TLDC.prototype = $extend(haxor.core.Application.prototype,{
 	Initialize: function() {
 		haxor.core.Console.Log("TLDC> Init",1);
 		this.view = new tldc.client.view.TLDCView();
-		this.controller = new tldc.client.controller.TLDCController();
 		this.model = new tldc.client.model.TLDCModel();
+		this.controller = new tldc.client.controller.TLDCController();
 		this.controller.Run();
 	}
 	,__class__: tldc.client.TLDC
@@ -13629,6 +13629,7 @@ tldc.client.controller.TLDCController = function() {
 	tldc.client.TLDCResource.call(this);
 	haxor.core.Console.Log("TLDCController> Init",1);
 	window.onhashchange = $bind(this,this.OnHashChange);
+	this.path = [];
 };
 $hxClasses["tldc.client.controller.TLDCController"] = tldc.client.controller.TLDCController;
 tldc.client.controller.TLDCController.__name__ = ["tldc","client","controller","TLDCController"];
@@ -13640,12 +13641,28 @@ tldc.client.controller.TLDCController.prototype = $extend(tldc.client.TLDCResour
 	}
 	,ApplyHash: function(p_hash) {
 		if(p_hash == "") return;
+		var h = StringTools.trim(p_hash);
+		h = StringTools.replace(h,"#","");
+		if(h.charAt(0) == "/") h = HxOverrides.substr(h,1,null);
+		if(h.charAt(h.length - 1) == "/") h = HxOverrides.substr(h,0,h.length - 1);
+		haxor.core.Console.Log("TLDCController> Apply Hash [" + h + "]",2);
+		var pl = h.split("/");
+		if(pl.length >= 1) this.get_app().view.section.ChangeSection(pl.shift());
+		this.path = pl;
+	}
+	,OnSectionChange: function() {
+		var c = this.get_app().view.section.current;
+		if(c == "") return;
+		window.location.hash = "/" + c;
 	}
 	,OnDataComplete: function() {
+		var _g = this;
 		this.get_app().view.loader.Remove(0.8);
 		this.get_app().view.header.Show(1.8);
 		this.get_app().view.section.Show(1.8);
-		this.ApplyHash(window.location.hash);
+		haxor.thread.Activity.Delay(2.5,function() {
+			_g.ApplyHash(window.location.hash);
+		});
 	}
 	,OnDataLoad: function(p_data,p_progress) {
 		this.get_app().view.loader.bar.get_layout().set_width(p_progress);
@@ -13657,12 +13674,55 @@ tldc.client.controller.TLDCController.prototype = $extend(tldc.client.TLDCResour
 	,__class__: tldc.client.controller.TLDCController
 });
 tldc.client.model = {};
-tldc.client.model.Donation = function(p_from,p_to,p_party,p_state,p_value) {
-	this.from = p_from;
+tldc.client.model.Filters = function() { };
+$hxClasses["tldc.client.model.Filters"] = tldc.client.model.Filters;
+tldc.client.model.Filters.__name__ = ["tldc","client","model","Filters"];
+tldc.client.model.Filters.ByState = function(p_state) {
+	return function(d) {
+		return HxOverrides.indexOf(p_state,d.state,0) >= 0;
+	};
+};
+tldc.client.model.TLDCFilter = function() {
+	tldc.client.TLDCResource.call(this);
+	this._m = this.get_app().model;
+};
+$hxClasses["tldc.client.model.TLDCFilter"] = tldc.client.model.TLDCFilter;
+tldc.client.model.TLDCFilter.__name__ = ["tldc","client","model","TLDCFilter"];
+tldc.client.model.TLDCFilter.__super__ = tldc.client.TLDCResource;
+tldc.client.model.TLDCFilter.prototype = $extend(tldc.client.TLDCResource.prototype,{
+	Filter: function(p_criteria) {
+		if(this._m == null) return [];
+		if(p_criteria == null) return this._m.donations;
+		var l = [];
+		var _g1 = 0;
+		var _g = this._m.donations.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			if(p_criteria(this._m.donations[i])) l.push(this._m.donations[i]);
+		}
+		return l;
+	}
+	,GetTotalDonations: function(p_criteria) {
+		var l = this.Filter(p_criteria);
+		var s = 0;
+		var _g1 = 0;
+		var _g = l.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			s += l[i].value;
+		}
+		return s;
+	}
+	,__class__: tldc.client.model.TLDCFilter
+});
+tldc.client.model.Donation = function(p_type,p_donor,p_to,p_position,p_party,p_state,p_value) {
+	this.type = p_type;
+	this.donor = p_donor;
 	this.to = p_to;
 	this.party = p_party;
 	this.state = p_state;
 	this.value = p_value;
+	this.position = p_position;
 };
 $hxClasses["tldc.client.model.Donation"] = tldc.client.model.Donation;
 tldc.client.model.Donation.__name__ = ["tldc","client","model","Donation"];
@@ -13678,46 +13738,83 @@ tldc.client.model.TLDCModel.__super__ = tldc.client.TLDCResource;
 tldc.client.model.TLDCModel.prototype = $extend(tldc.client.TLDCResource.prototype,{
 	Load: function() {
 		haxor.core.Console.Log("TLDCModel> Load data.",1);
+		this.filter = new tldc.client.model.TLDCFilter();
 		haxor.net.Web.Load("data/data-tree-2014.json",$bind(this,this.OnDataLoad));
 	}
-	,ProcessNode: function(p_node) {
+	,ProcessNode: function(p_node,p_parent) {
 		if(p_node.name == null) return;
+		var ppn;
+		if(p_node.parent == null) ppn = ""; else if(p_node.parent.parent == null) ppn = ""; else ppn = p_node.parent.parent.name;
+		var pn;
+		if(p_node.parent == null) pn = ""; else pn = p_node.parent.name;
 		var n = p_node.name;
-		var o = n.toLowerCase();
+		var t = n.toLowerCase();
+		var s = "";
+		var st = "";
+		var is_party = false;
 		if(p_node.value != null) {
+			if(n.indexOf("(") >= 0) {
+				var sttk = n.split("(");
+				if(sttk.length >= 1) s = sttk[1];
+				s = StringTools.replace(s,")","");
+				st = StringTools.trim(s).toUpperCase();
+			}
 			var v = p_node.value;
-			this.total += v;
-			var d = new tldc.client.model.Donation(this.m_current_origin,n,"","",v);
+			var d = new tldc.client.model.Donation(this.m_current_type,this.m_current_donor,n,pn,this.m_current_party,st,v);
 			this.donations.push(d);
 		} else {
-			if(o.indexOf("fundo") >= 0) this.m_current_origin = "fundo-partidario";
-			if(o.indexOf("empresas") >= 0) this.m_current_origin = "empresa";
-			if(o.indexOf("pessoa") >= 0) this.m_current_origin = "pessoa";
+			if(t.indexOf("fundo") >= 0) {
+				this.m_current_type = "fundo";
+				return;
+			}
+			if(t.indexOf("empresas") >= 0) {
+				this.m_current_type = "empresa";
+				return;
+			}
+			if(t.indexOf("pessoa") >= 0) {
+				this.m_current_type = "pessoa";
+				return;
+			}
+			var _g = this.m_current_type;
+			switch(_g) {
+			case "pessoa":case "empresa":
+				if(ppn.toLowerCase().indexOf("grandes") >= 0) this.m_current_party = StringTools.trim(n).toUpperCase();
+				if(pn.toLowerCase().indexOf("pequenos") >= 0) {
+					this.m_current_donor = "Pequenos Doadores";
+					this.m_current_party = StringTools.trim(n).toUpperCase();
+				}
+				if(pn.toLowerCase().indexOf("grandes") >= 0) this.m_current_donor = StringTools.trim(n);
+				break;
+			case "fundo":
+				if(pn.indexOf("fundo") >= 0) this.m_current_party = StringTools.trim(n).toUpperCase();
+				break;
+			}
 		}
 	}
 	,OnDataLoad: function(p_data,p_progress) {
 		if(p_data != null) {
 			this.tree = JSON.parse(p_data);
+			this.TraverseTreeData(this.tree,null,$bind(this,this.AdjustTree));
 			this.Parse();
 		}
 		this.get_app().controller.OnDataLoad(p_data,p_progress);
 	}
 	,Parse: function() {
-		console.log(this.tree);
-		this.total = 0;
 		this.donations = [];
-		this.ParseTree(this.tree);
-		console.log("R$ " + this.total);
-		console.log(this.donations);
+		this.TraverseTreeData(this.tree,null,$bind(this,this.ProcessNode));
 	}
-	,ParseTree: function(p_node) {
-		this.ProcessNode(p_node);
+	,TraverseTreeData: function(p_node,p_parent,p_callback) {
+		p_callback(p_node,p_parent);
+		if(p_node.children == null) return;
 		var _g1 = 0;
 		var _g = p_node.children.length;
 		while(_g1 < _g) {
 			var i = _g1++;
-			console.log(p_node.children[i]);
+			this.TraverseTreeData(p_node.children[i],p_node,p_callback);
 		}
+	}
+	,AdjustTree: function(n,p) {
+		n.parent = p;
 	}
 	,__class__: tldc.client.model.TLDCModel
 });
@@ -13759,6 +13856,7 @@ tldc.client.view.SectionView = function() {
 	var _g = this;
 	tldc.client.TLDCResource.call(this);
 	this.container = this.get_app().get_stage().Find("content.section");
+	this.current = "";
 	haxor.thread.Activity.Run(function(t) {
 		if(haxor.input.Input.Down(haxor.input.KeyCode.D1)) _g.ChangeSection("A");
 		if(haxor.input.Input.Down(haxor.input.KeyCode.D2)) _g.ChangeSection("B");
@@ -13775,13 +13873,16 @@ tldc.client.view.SectionView.prototype = $extend(tldc.client.TLDCResource.protot
 		haxor.core.Tween.Add(this.container,"alpha",1.0,0.5,p_delay,haxor.math.Cubic.Out);
 	}
 	,ChangeSection: function(p_name) {
+		if(p_name == this.current) return;
 		var s = this.container.GetChildByName(p_name);
 		if(s == null) {
 			haxor.core.Console.Log("SectionView> Section [" + p_name + "] not found!",1);
 			return;
 		}
+		this.current = p_name;
 		var v = s.get_layout().get_x();
 		haxor.core.Tween.Add(this.container.get_layout(),"x",-v,0.5,0.0,haxor.math.Cubic.Out);
+		haxor.thread.Activity.Delay(0.6,($_=this.get_app().controller,$bind($_,$_.OnSectionChange)));
 	}
 	,__class__: tldc.client.view.SectionView
 });

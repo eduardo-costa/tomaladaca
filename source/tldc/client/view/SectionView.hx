@@ -21,12 +21,18 @@ class SectionView extends TLDCResource
 	public var container : Container;
 
 	/**
+	 * Current section.
+	 */
+	public var current : String;
+	
+	/**
 	 * CTOR.
 	 */
 	public function new() 
 	{
 		super();
 		container = cast app.stage.Find("content.section");
+		current = "";
 		Activity.Run(function(t:Float):Bool
 		{
 			if (Input.Down(KeyCode.D1)) ChangeSection("A");
@@ -50,14 +56,17 @@ class SectionView extends TLDCResource
 	 */
 	public function ChangeSection(p_name : String):Void
 	{
+		if (p_name == current) return;
 		var s : Container =  cast container.GetChildByName(p_name);
 		if (s == null)
 		{
 			Console.Log("SectionView> Section [" + p_name+"] not found!", 1);
 			return;
 		}
+		current = p_name;
 		var v : Float = s.layout.x;				
 		Tween.Add(container.layout, "x", -v, 0.5, 0.0, Cubic.Out);
+		Activity.Delay(0.6, app.controller.OnSectionChange);
 	}
 	
 }

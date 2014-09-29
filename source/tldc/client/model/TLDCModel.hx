@@ -3,6 +3,7 @@ import haxe.Json;
 import haxor.core.Console;
 import haxor.net.Web;
 import haxor.platform.Types.Float32;
+import tldc.client.model.TLDCFilter.Filters;
 import tldc.client.model.TLDCModel.Donation;
 import tldc.client.TLDCResource;
 
@@ -14,6 +15,7 @@ extern class DataTreeNode
 	var children : Array<DataTreeNode>;	
 	var value : Int;	
 	var name : String;
+	var parent : DataTreeNode;
 }
 
 /**
@@ -22,9 +24,19 @@ extern class DataTreeNode
 class Donation
 {
 	/**
-	 * Donation origin.
+	 * Donation origin type.
 	 */
-	public var from : String;
+	public var type : String;
+	
+	/**
+	 * Who donated.
+	 */
+	public var donor : String;
+	
+	/**
+	 * Politian position.
+	 */
+	public var position : String;
 	
 	/**
 	 * Donation polician target.
@@ -54,13 +66,15 @@ class Donation
 	 * @param	p_state
 	 * @param	p_value
 	 */
-	public function new(p_from : String, p_to:String, p_party:String, p_state:String, p_value:Int):Void
+	public function new(p_type : String, p_donor:String, p_to:String,p_position:String, p_party:String, p_state:String, p_value:Int):Void
 	{
-		from = p_from;
+		type = p_type;
+		donor = p_donor;
 		to	 = p_to;
 		party = p_party;
 		state = p_state;
 		value = p_value;
+		position = p_position;
 	}
 }
 
@@ -81,21 +95,31 @@ class TLDCModel extends TLDCResource
 	public var donations : Array<Donation>;
 	
 	/**
-	 * Total donations.
+	 * Reference to the filter class.
 	 */
-	public var total : Int;
+	public var filter : TLDCFilter;
 	
 	/**
-	 * Current donation origin in the parse process.
+	 * Current donation type in the parse process.
 	 */
-	private var m_current_origin : String;
+	private var m_current_type : String;
+	
+	/**
+	 * Current donor in the parse process.
+	 */
+	private var m_current_donor : String;
+	
+	/**
+	 * Current target party for donation.
+	 */
+	private var m_current_party : String;
 	
 	/**
 	 * CTOR.
 	 */
 	public function new() 
 	{
-		super();		
+		super();				
 	}
 	
 	/**
@@ -104,28 +128,62 @@ class TLDCModel extends TLDCResource
 	public function Load():Void
 	{
 		Console.Log("TLDCModel> Load data.", 1);
+		filter = new TLDCFilter();
 		Web.Load("data/data-tree-2014.json", OnDataLoad);
 	}
 	
-	private function ProcessNode(p_node : DataTreeNode):Void
+	/**
+	 * Process the nodes and organize all donations in a list.
+	 * @param	p_node
+	 * @param	p_parent
+	 */
+	private function ProcessNode(p_node : DataTreeNode,p_parent : DataTreeNode):Void
 	{
 		if (p_node.name == null) return;
 		
-		var n : String = p_node.name;
-		var o : String = n.toLowerCase();
+		var ppn : String = p_node.parent == null ? "" : (p_node.parent.parent == null ? "" : p_node.parent.parent.name); 
+		var pn : String = p_node.parent == null ? "" : p_node.parent.name;
+		var n : String = p_node.name;		
+		var t : String = n.toLowerCase();
+		var s : String = "";
+		var st : String = "";
+		var is_party : Bool=false;
 		
 		if (p_node.value != null)
-		{
-			var v : Int = p_node.value;
-			total += v;
-			var d : Donation = new Donation(m_current_origin, n, "", "", v);
+		{			
+			if (n.indexOf("(") >= 0)
+			{				
+				var sttk : Array<String> = n.split("(");
+				if (sttk.length >= 1) s = sttk[1];
+				s  = StringTools.replace(s,  ")", "");
+				st = StringTools.trim(s).toUpperCase();								 				
+			}
+			var v : Int = p_node.value;			
+			var d : Donation = new Donation(m_current_type,m_current_donor, n,pn, m_current_party, st, v);
 			donations.push(d);
 		}
 		else
 		{
-			if (o.indexOf("fundo") >= 0) 	m_current_origin = "fundo-partidario";
-			if (o.indexOf("empresas") >= 0) m_current_origin = "empresa";
-			if (o.indexOf("pessoa") >= 0) 	m_current_origin = "pessoa";
+			if (t.indexOf("fundo") >= 0) 	{ m_current_type = "fundo"; return; }
+			if (t.indexOf("empresas") >= 0) { m_current_type = "empresa"; return; }
+			if (t.indexOf("pessoa") >= 0) 	{ m_current_type = "pessoa"; return; }
+			
+			switch(m_current_type)
+			{
+				case "pessoa","empresa":
+										
+					if (ppn.toLowerCase().indexOf("grandes") >= 0) m_current_party = StringTools.trim(n).toUpperCase(); 					
+					if (pn.toLowerCase().indexOf("pequenos") >= 0)
+					{
+						m_current_donor = "Pequenos Doadores";
+						m_current_party = StringTools.trim(n).toUpperCase();
+					}					
+					if (pn.toLowerCase().indexOf("grandes") >= 0) m_current_donor = StringTools.trim(n);					
+				
+				case "fundo":
+					if (pn.indexOf("fundo") >= 0) m_current_party = StringTools.trim(n).toUpperCase(); 
+			}
+			
 		}
 	}
 	
@@ -139,6 +197,7 @@ class TLDCModel extends TLDCResource
 		if (p_data != null)
 		{
 			tree = cast Json.parse(p_data);
+			TraverseTreeData(tree,null,AdjustTree);
 			Parse();
 		}		
 		app.controller.OnDataLoad(p_data, p_progress);
@@ -148,23 +207,23 @@ class TLDCModel extends TLDCResource
 	 * Parse the current tree data.
 	 */
 	private function Parse():Void
-	{
-		trace(tree);
-		total = 0;
-		donations = [];
-		ParseTree(tree);
-		trace("R$ " + total);
-		trace(donations);
+	{		
+		donations = [];		
+		TraverseTreeData(tree,null,ProcessNode);		
 	}
 	
-	private function ParseTree(p_node : DataTreeNode):Void
+	/**
+	 * Traverse 1 step in the tree data.
+	 * @param	p_node
+	 * @param	p_parent
+	 * @param	p_callback
+	 */
+	private function TraverseTreeData(p_node : DataTreeNode,p_parent : DataTreeNode,p_callback:DataTreeNode->DataTreeNode->Void):Void
 	{
-		ProcessNode(p_node);
-		for (i in 0...p_node.children.length)
-		{
-			trace(p_node.children[i]);
-			//ParseTree(p_node.children[i]);
-		}
+		p_callback(p_node,p_parent);		
+		if (p_node.children == null) return;
+		for (i in 0...p_node.children.length) TraverseTreeData(p_node.children[i],p_node,p_callback);
 	}
 	
+	private function AdjustTree(n:DataTreeNode, p:DataTreeNode):Void { n.parent = p; }
 }

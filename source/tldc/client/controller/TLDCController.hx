@@ -5,6 +5,7 @@ import haxor.core.Resource;
 import haxor.thread.Activity;
 import js.Browser;
 import js.html.Event;
+import tldc.client.model.TLDCFilter.Filters;
 
 /**
  * Class that handles the switch between behaviours of this site.
@@ -12,6 +13,7 @@ import js.html.Event;
  */
 class TLDCController extends TLDCResource
 {
+	public var path : Array<String>;
 
 	/**
 	 * CTOR.
@@ -21,6 +23,7 @@ class TLDCController extends TLDCResource
 		super();
 		Console.Log("TLDCController> Init", 1);
 		Browser.window.onhashchange = OnHashChange;				
+		path = [];
 	}
 	
 	/**
@@ -39,15 +42,35 @@ class TLDCController extends TLDCResource
 	private function ApplyHash(p_hash:String):Void
 	{
 		if (p_hash == "") return;
+		var h : String = StringTools.trim(p_hash);
+		h = StringTools.replace(h, "#", "");
+		if (h.charAt(0) == "/") h = h.substr(1);
+		if (h.charAt(h.length - 1) == "/") h = h.substr(0, h.length - 1);
+		Console.Log("TLDCController> Apply Hash ["+h+"]", 2);
+		var pl : Array<String> = h.split("/");
+		if(pl.length>=1) app.view.section.ChangeSection(pl.shift());
+		path = pl;		
 	}
 	
+	/**
+	 * Callback called when the section finished changing.
+	 */
+	public function OnSectionChange():Void
+	{
+		var c : String = app.view.section.current;
+		if (c == "") return;
+		Browser.location.hash = "/"+c;
+	}
+	
+	/**
+	 * Callback called when the main data files finished loading.
+	 */
 	private function OnDataComplete():Void
 	{
 		app.view.loader.Remove(0.8);
 		app.view.header.Show(1.8);
 		app.view.section.Show(1.8);
-		ApplyHash(Browser.location.hash);
-		
+		Activity.Delay(2.5, function():Void {  ApplyHash(Browser.location.hash);	} );
 	}
 	
 	/**
