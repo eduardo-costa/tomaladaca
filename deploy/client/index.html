@@ -21,7 +21,7 @@
 			<sprite name="background" src="image/senado.jpg" pxy="50%" xy="60%" alpha="0.25"></sprite>
 			<sprite name="pattern" src="@bkg-pattern" wh="100%" alpha="1.0" pattern></sprite>
 			
-			<container name="section" x="0%" wh="100%">
+			<container name="section" x="0%" wh="100%" alpha="0.0">
 				<container name="A" wh="100%" x="0%" style="background-color:rgba(255,0,0,0.2);">
 					<p style="position: absolute;left:30px; top: 50px; font-size:130px; font-family: Verdana; color: #ff0;">A</p>
 				</container>
@@ -31,6 +31,10 @@
 				<container name="C" wh="100%" x="200%" style="background-color:rgba(0,0,255,0.2);">
 					<p style="position: absolute;left:30px; top: 50px; font-size:130px; font-family: Verdana; color: #ff0;">C</p>
 				</container>
+			</container>
+			
+			<container name="loader" wh="100%">
+				<container name="bar" w="0%" h="16" py="50%" y="50%"  style="background-color:#062;"></container>
 			</container>
 			
 			<container name="header" w="100%" h="70px" py="100%" style="background-color: #eee;">

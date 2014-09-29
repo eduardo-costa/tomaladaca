@@ -17,6 +17,11 @@ class TLDCView extends TLDCResource
 	 * Reference to the section view.
 	 */
 	public var section : SectionView;
+	
+	/**
+	 * Reference to the data loader.
+	 */
+	public var loader : LoaderView;
 
 	/**
 	 * CTOR
@@ -27,6 +32,8 @@ class TLDCView extends TLDCResource
 		Console.Log("TLDCView> Init", 1);
 		header = new HeaderView();
 		section = new SectionView();
+		loader = new LoaderView();
+		
 	}
 	
 }

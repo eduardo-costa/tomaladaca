@@ -28,9 +28,9 @@ class HeaderView  extends TLDCResource
 	/**
 	 * Shows the header.
 	 */
-	public function Show():Void
+	public function Show(p_delay:Float=0.0):Void
 	{
-		Tween.Add(container.layout, "py", 0.0, 0.5, 1.0, Cubic.Out);
+		Tween.Add(container.layout, "py", 0.0, 0.5, p_delay, Cubic.Out);
 	}
 	
 }

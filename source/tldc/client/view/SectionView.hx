@@ -20,6 +20,9 @@ class SectionView extends TLDCResource
 	 */
 	public var container : Container;
 
+	/**
+	 * CTOR.
+	 */
 	public function new() 
 	{
 		super();
@@ -31,6 +34,14 @@ class SectionView extends TLDCResource
 			if (Input.Down(KeyCode.D3)) ChangeSection("C");
 			return true;
 		});
+	}
+	
+	/**
+	 * Shows the sections.
+	 */
+	public function Show(p_delay:Float=0.0):Void
+	{
+		Tween.Add(container, "alpha", 1.0, 0.5, p_delay, Cubic.Out);
 	}
 	
 	/**

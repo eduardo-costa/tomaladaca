@@ -101,6 +101,10 @@ StringBuf.prototype = {
 var StringTools = function() { };
 $hxClasses["StringTools"] = StringTools;
 StringTools.__name__ = ["StringTools"];
+StringTools.htmlEscape = function(s,quotes) {
+	s = s.split("&").join("&amp;").split("<").join("&lt;").split(">").join("&gt;");
+	if(quotes) return s.split("\"").join("&quot;").split("'").join("&#039;"); else return s;
+};
 StringTools.isSpace = function(s,pos) {
 	var c = HxOverrides.cca(s,pos);
 	return c > 8 && c < 14 || c == 32;
@@ -259,6 +263,39 @@ Xml.prototype = {
 		if(this.nodeType != Xml.Element) throw "bad nodeType";
 		return this._attributes.exists(att);
 	}
+	,iterator: function() {
+		if(this._children == null) throw "bad nodetype";
+		return { cur : 0, x : this._children, hasNext : function() {
+			return this.cur < this.x.length;
+		}, next : function() {
+			return this.x[this.cur++];
+		}};
+	}
+	,elements: function() {
+		if(this._children == null) throw "bad nodetype";
+		return { cur : 0, x : this._children, hasNext : function() {
+			var k = this.cur;
+			var l = this.x.length;
+			while(k < l) {
+				if(this.x[k].nodeType == Xml.Element) break;
+				k += 1;
+			}
+			this.cur = k;
+			return k < l;
+		}, next : function() {
+			var k1 = this.cur;
+			var l1 = this.x.length;
+			while(k1 < l1) {
+				var n = this.x[k1];
+				k1 += 1;
+				if(n.nodeType == Xml.Element) {
+					this.cur = k1;
+					return n;
+				}
+			}
+			return null;
+		}};
+	}
 	,elementsNamed: function(name) {
 		if(this._children == null) throw "bad nodetype";
 		return { cur : 0, x : this._children, hasNext : function() {
@@ -306,38 +343,52 @@ Xml.prototype = {
 		x._parent = this;
 		this._children.push(x);
 	}
+	,toString: function() {
+		if(this.nodeType == Xml.PCData) return StringTools.htmlEscape(this._nodeValue);
+		if(this.nodeType == Xml.CData) return "<![CDATA[" + this._nodeValue + "]]>";
+		if(this.nodeType == Xml.Comment) return "<!--" + this._nodeValue + "-->";
+		if(this.nodeType == Xml.DocType) return "<!DOCTYPE " + this._nodeValue + ">";
+		if(this.nodeType == Xml.ProcessingInstruction) return "<?" + this._nodeValue + "?>";
+		var s = new StringBuf();
+		if(this.nodeType == Xml.Element) {
+			s.b += "<";
+			s.b += Std.string(this._nodeName);
+			var $it0 = this._attributes.keys();
+			while( $it0.hasNext() ) {
+				var k = $it0.next();
+				s.b += " ";
+				if(k == null) s.b += "null"; else s.b += "" + k;
+				s.b += "=\"";
+				s.add(this._attributes.get(k));
+				s.b += "\"";
+			}
+			if(this._children.length == 0) {
+				s.b += "/>";
+				return s.b;
+			}
+			s.b += ">";
+		}
+		var $it1 = this.iterator();
+		while( $it1.hasNext() ) {
+			var x = $it1.next();
+			s.add(x.toString());
+		}
+		if(this.nodeType == Xml.Element) {
+			s.b += "</";
+			s.b += Std.string(this._nodeName);
+			s.b += ">";
+		}
+		return s.b;
+	}
 	,__class__: Xml
 	,__properties__: {set_nodeValue:"set_nodeValue",get_nodeValue:"get_nodeValue",set_nodeName:"set_nodeName",get_nodeName:"get_nodeName"}
 };
 var haxe = {};
-haxe.Timer = function(time_ms) {
-	var me = this;
-	this.id = setInterval(function() {
-		me.run();
-	},time_ms);
-};
+haxe.Timer = function() { };
 $hxClasses["haxe.Timer"] = haxe.Timer;
 haxe.Timer.__name__ = ["haxe","Timer"];
-haxe.Timer.delay = function(f,time_ms) {
-	var t = new haxe.Timer(time_ms);
-	t.run = function() {
-		t.stop();
-		f();
-	};
-	return t;
-};
 haxe.Timer.stamp = function() {
 	return new Date().getTime() / 1000;
-};
-haxe.Timer.prototype = {
-	stop: function() {
-		if(this.id == null) return;
-		clearInterval(this.id);
-		this.id = null;
-	}
-	,run: function() {
-	}
-	,__class__: haxe.Timer
 };
 haxe.io = {};
 haxe.io.Bytes = function(length,b) {
@@ -583,6 +634,13 @@ haxe.ds.StringMap.prototype = {
 		if(!this.h.hasOwnProperty(key)) return false;
 		delete(this.h[key]);
 		return true;
+	}
+	,keys: function() {
+		var a = [];
+		for( var key in this.h ) {
+		if(this.h.hasOwnProperty(key)) a.push(key.substr(1));
+		}
+		return HxOverrides.iter(a);
 	}
 	,__class__: haxe.ds.StringMap
 };
@@ -1244,6 +1302,16 @@ haxor.component.Camera.prototype = $extend(haxor.component.Behaviour.prototype,{
 	,__class__: haxor.component.Camera
 	,__properties__: $extend(haxor.component.Behaviour.prototype.__properties__,{get_frustum:"get_frustum",set_filters:"set_filters",get_filters:"get_filters",set_captureDepth:"set_captureDepth",get_captureDepth:"get_captureDepth",set_quality:"set_quality",get_quality:"get_quality",get_ProjectionMatrixInverse:"get_ProjectionMatrixInverse",get_ProjectionMatrix:"get_ProjectionMatrix",get_WorldToCamera:"get_WorldToCamera",get_CameraToWorld:"get_CameraToWorld",set_viewport:"set_viewport",get_viewport:"get_viewport",get_pixelViewport:"get_pixelViewport",set_order:"set_order",get_order:"get_order",set_far:"set_far",get_far:"get_far",set_near:"set_near",get_near:"get_near",set_fov:"set_fov",get_fov:"get_fov",set_mask:"set_mask",get_mask:"get_mask"})
 });
+haxor.component.DataComponent = function() {
+	haxor.component.Component.call(this);
+	this.data = new haxe.ds.StringMap();
+};
+$hxClasses["haxor.component.DataComponent"] = haxor.component.DataComponent;
+haxor.component.DataComponent.__name__ = ["haxor","component","DataComponent"];
+haxor.component.DataComponent.__super__ = haxor.component.Component;
+haxor.component.DataComponent.prototype = $extend(haxor.component.Component.prototype,{
+	__class__: haxor.component.DataComponent
+});
 haxor.math = {};
 haxor.math.Color = function(p_r,p_g,p_b,p_a) {
 	if(p_a == null) p_a = 1;
@@ -1667,6 +1735,85 @@ haxor.component.MeshRenderer.prototype = $extend(haxor.component.Renderer.protot
 	}
 	,__class__: haxor.component.MeshRenderer
 	,__properties__: $extend(haxor.component.Renderer.prototype.__properties__,{set_mesh:"set_mesh",get_mesh:"get_mesh"})
+});
+haxor.component.PointLight = function() {
+	haxor.component.Light.call(this);
+	this.atten = 1.0;
+	this.radius = 1.0;
+};
+$hxClasses["haxor.component.PointLight"] = haxor.component.PointLight;
+haxor.component.PointLight.__name__ = ["haxor","component","PointLight"];
+haxor.component.PointLight.Create = function(p_color,p_intensity,p_atten,p_radius) {
+	var e = new haxor.core.Entity();
+	e.set_name("PointLight");
+	var l = e.AddComponent(haxor.component.PointLight);
+	l.color = p_color;
+	l.intensity = p_intensity;
+	l.atten = p_atten;
+	l.radius = p_radius;
+	return l;
+};
+haxor.component.PointLight.__super__ = haxor.component.Light;
+haxor.component.PointLight.prototype = $extend(haxor.component.Light.prototype,{
+	__class__: haxor.component.PointLight
+});
+haxor.component.SkinnedMeshRenderer = function(p_name) {
+	haxor.component.MeshRenderer.call(this,p_name);
+};
+$hxClasses["haxor.component.SkinnedMeshRenderer"] = haxor.component.SkinnedMeshRenderer;
+haxor.component.SkinnedMeshRenderer.__name__ = ["haxor","component","SkinnedMeshRenderer"];
+haxor.component.SkinnedMeshRenderer.__super__ = haxor.component.MeshRenderer;
+haxor.component.SkinnedMeshRenderer.prototype = $extend(haxor.component.MeshRenderer.prototype,{
+	set_joints: function(v) {
+		if(v == null) this.m_joints = []; else this.m_joints = v;
+		return this.m_joints;
+	}
+	,get_joints: function() {
+		return this.m_joints;
+	}
+	,OnBuild: function() {
+		haxor.component.MeshRenderer.prototype.OnBuild.call(this);
+		this.m_joints = [];
+		this.m_buffer = [];
+		var _g = 0;
+		while(_g < 8192) {
+			var i = _g++;
+			this.m_buffer.push(0);
+		}
+		this.m_data = new haxor.graphics.texture.ComputeTexture(1,2048,haxor.core.PixelFormat.Float4);
+		this.m_data.set_name("SkinningTexture" + this.get_uid());
+	}
+	,OnRender: function() {
+		if(this.m_material != null) {
+			var skm = this.m_mesh;
+			var k = 0;
+			var jm;
+			var bm;
+			var f32 = this.m_data.m_data.get_buffer();
+			var _g1 = 0;
+			var _g = this.m_joints.length;
+			while(_g1 < _g) {
+				var i = _g1++;
+				jm = this.m_joints[i].get_WorldMatrix();
+				bm = skm.get_binds()[i];
+				var _g2 = 0;
+				while(_g2 < 12) {
+					var j = _g2++;
+					f32.Set(k,jm.GetIndex(j));
+					f32.Set(k + 4096,bm.GetIndex(j));
+					k++;
+				}
+			}
+			this.m_data.Invalidate();
+			this.m_material.SetTexture("Skinning",this.m_data);
+		}
+		haxor.component.MeshRenderer.prototype.OnRender.call(this);
+		var sh = haxor.graphics.Screen.m_height;
+		var th = 2048.0;
+		haxor.graphics.Graphics.DrawTexture(this.m_data,0,th + 105,256,-th);
+	}
+	,__class__: haxor.component.SkinnedMeshRenderer
+	,__properties__: $extend(haxor.component.MeshRenderer.prototype.__properties__,{set_joints:"set_joints",get_joints:"get_joints"})
 });
 haxor.component.Transform = function(p_name) {
 	haxor.component.Component.call(this,p_name);
@@ -7252,6 +7399,204 @@ haxor.graphics.mesh.MeshAttrib.prototype = {
 	,__class__: haxor.graphics.mesh.MeshAttrib
 	,__properties__: {get_count:"get_count",get_name:"get_name"}
 };
+haxor.graphics.mesh.MeshLayout = function(p_name) {
+	if(p_name == null) p_name = "";
+	haxor.graphics.mesh.Mesh.call(this,p_name);
+	this.m_vertex = [];
+	this.m_normal = [];
+	this.m_color = [];
+	this.m_uv0 = [];
+	this.m_uv1 = [];
+	this.m_tangent = [];
+	this.m_binormal = [];
+};
+$hxClasses["haxor.graphics.mesh.MeshLayout"] = haxor.graphics.mesh.MeshLayout;
+haxor.graphics.mesh.MeshLayout.__name__ = ["haxor","graphics","mesh","MeshLayout"];
+haxor.graphics.mesh.MeshLayout.__super__ = haxor.graphics.mesh.Mesh;
+haxor.graphics.mesh.MeshLayout.prototype = $extend(haxor.graphics.mesh.Mesh.prototype,{
+	get_vertex: function() {
+		return this.m_vertex;
+	}
+	,set_vertex: function(v) {
+		return this.m_vertex = this.UpdateAttribute("vertex",v,false);
+	}
+	,get_normal: function() {
+		return this.m_normal;
+	}
+	,set_normal: function(v) {
+		return this.m_normal = this.UpdateAttribute("normal",v,false);
+	}
+	,get_color: function() {
+		return this.m_color;
+	}
+	,set_color: function(v) {
+		return this.m_color = this.UpdateAttribute("color",v,true);
+	}
+	,get_uv0: function() {
+		return this.m_uv0;
+	}
+	,set_uv0: function(v) {
+		return this.m_uv0 = this.UpdateAttribute("uv0",v,false);
+	}
+	,get_uv1: function() {
+		return this.m_uv1;
+	}
+	,set_uv1: function(v) {
+		return this.m_uv1 = this.UpdateAttribute("uv1",v,false);
+	}
+	,get_tangent: function() {
+		return this.m_tangent;
+	}
+	,set_tangent: function(v) {
+		return this.m_tangent = this.UpdateAttribute("tangent",v,false);
+	}
+	,get_binormal: function() {
+		return this.m_binormal;
+	}
+	,set_binormal: function(v) {
+		return this.m_binormal = this.UpdateAttribute("binormal",v,false);
+	}
+	,GenerateBounds: function() {
+		this.GenerateAttribBounds("vertex",this.m_bounds);
+	}
+	,UpdateAttribute: function(p_name,p_list,p_is_color) {
+		if(p_is_color == null) p_is_color = false;
+		if(p_list == null) {
+			this.Remove(p_name);
+			return [];
+		}
+		if(p_list.length <= 0) {
+			this.Remove(p_name);
+			return [];
+		}
+		var a = this.GetAttribute(p_name);
+		var off = 1;
+		if(js.Boot.__instanceof(p_list[0],haxor.math.Vector2)) off = 2;
+		if(js.Boot.__instanceof(p_list[0],haxor.math.Vector3)) off = 3;
+		if(js.Boot.__instanceof(p_list[0],haxor.math.Vector4)) off = 4;
+		if(js.Boot.__instanceof(p_list[0],haxor.math.Color)) off = 4;
+		if(a == null) a = this.Set(p_name,new haxor.io.FloatArray(1),off);
+		var p = 0;
+		var f = a.data = new haxor.io.FloatArray(p_list.length * off);
+		console.log(this.get_name() + " a[" + p_name + "] off[" + off + "] len[" + f.m_length + "]");
+		var _g1 = 0;
+		var _g = p_list.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var it = p_list[i];
+			switch(off) {
+			case 1:
+				var v = it;
+				f.Set(p++,v);
+				break;
+			case 2:
+				var v2 = it;
+				f.Set(p++,v2.x);
+				f.Set(p++,v2.y);
+				break;
+			case 3:
+				var v3 = it;
+				f.Set(p++,v3.x);
+				f.Set(p++,v3.y);
+				f.Set(p++,v3.z);
+				break;
+			case 4:
+				if(p_is_color) {
+					var c = it;
+					f.Set(p++,c.r);
+					f.Set(p++,c.g);
+					f.Set(p++,c.b);
+					f.Set(p++,c.a);
+				} else {
+					var v4 = it;
+					f.Set(p++,v4.x);
+					f.Set(p++,v4.y);
+					f.Set(p++,v4.z);
+					f.Set(p++,v4.w);
+				}
+				break;
+			}
+		}
+		this.Set(p_name,f,off);
+		return p_list;
+	}
+	,__class__: haxor.graphics.mesh.MeshLayout
+	,__properties__: $extend(haxor.graphics.mesh.Mesh.prototype.__properties__,{set_binormal:"set_binormal",get_binormal:"get_binormal",set_tangent:"set_tangent",get_tangent:"get_tangent",set_uv1:"set_uv1",get_uv1:"get_uv1",set_uv0:"set_uv0",get_uv0:"get_uv0",set_color:"set_color",get_color:"get_color",set_normal:"set_normal",get_normal:"get_normal",set_vertex:"set_vertex",get_vertex:"get_vertex"})
+});
+haxor.graphics.mesh.Mesh3 = function(p_name) {
+	haxor.graphics.mesh.MeshLayout.call(this,p_name);
+};
+$hxClasses["haxor.graphics.mesh.Mesh3"] = haxor.graphics.mesh.Mesh3;
+haxor.graphics.mesh.Mesh3.__name__ = ["haxor","graphics","mesh","Mesh3"];
+haxor.graphics.mesh.Mesh3.__super__ = haxor.graphics.mesh.MeshLayout;
+haxor.graphics.mesh.Mesh3.prototype = $extend(haxor.graphics.mesh.MeshLayout.prototype,{
+	__class__: haxor.graphics.mesh.Mesh3
+});
+haxor.graphics.mesh.SkinnedMesh3 = function(p_name) {
+	haxor.graphics.mesh.Mesh3.call(this,p_name);
+};
+$hxClasses["haxor.graphics.mesh.SkinnedMesh3"] = haxor.graphics.mesh.SkinnedMesh3;
+haxor.graphics.mesh.SkinnedMesh3.__name__ = ["haxor","graphics","mesh","SkinnedMesh3"];
+haxor.graphics.mesh.SkinnedMesh3.__super__ = haxor.graphics.mesh.Mesh3;
+haxor.graphics.mesh.SkinnedMesh3.prototype = $extend(haxor.graphics.mesh.Mesh3.prototype,{
+	get_binds: function() {
+		return this.m_binds;
+	}
+	,set_binds: function(v) {
+		this.m_binds = v.slice();
+		return v;
+	}
+	,get_bone: function() {
+		return this.m_bone;
+	}
+	,set_bone: function(v) {
+		return this.m_bone = this.UpdateAttribute("bone",v,false);
+	}
+	,get_weight: function() {
+		return this.m_weight;
+	}
+	,set_weight: function(v) {
+		return this.m_weight = this.UpdateAttribute("weight",v,false);
+	}
+	,__class__: haxor.graphics.mesh.SkinnedMesh3
+	,__properties__: $extend(haxor.graphics.mesh.Mesh3.prototype.__properties__,{set_weight:"set_weight",get_weight:"get_weight",set_bone:"set_bone",get_bone:"get_bone",set_binds:"set_binds",get_binds:"get_binds"})
+});
+haxor.graphics.mesh.Mesh2D = function(p_name) {
+	haxor.graphics.mesh.MeshLayout.call(this,p_name);
+};
+$hxClasses["haxor.graphics.mesh.Mesh2D"] = haxor.graphics.mesh.Mesh2D;
+haxor.graphics.mesh.Mesh2D.__name__ = ["haxor","graphics","mesh","Mesh2D"];
+haxor.graphics.mesh.Mesh2D.__super__ = haxor.graphics.mesh.MeshLayout;
+haxor.graphics.mesh.Mesh2D.prototype = $extend(haxor.graphics.mesh.MeshLayout.prototype,{
+	__class__: haxor.graphics.mesh.Mesh2D
+});
+haxor.graphics.mesh.Mesh23 = function(p_name) {
+	haxor.graphics.mesh.MeshLayout.call(this,p_name);
+};
+$hxClasses["haxor.graphics.mesh.Mesh23"] = haxor.graphics.mesh.Mesh23;
+haxor.graphics.mesh.Mesh23.__name__ = ["haxor","graphics","mesh","Mesh23"];
+haxor.graphics.mesh.Mesh23.__super__ = haxor.graphics.mesh.MeshLayout;
+haxor.graphics.mesh.Mesh23.prototype = $extend(haxor.graphics.mesh.MeshLayout.prototype,{
+	__class__: haxor.graphics.mesh.Mesh23
+});
+haxor.graphics.mesh.Mesh2 = function(p_name) {
+	haxor.graphics.mesh.MeshLayout.call(this,p_name);
+};
+$hxClasses["haxor.graphics.mesh.Mesh2"] = haxor.graphics.mesh.Mesh2;
+haxor.graphics.mesh.Mesh2.__name__ = ["haxor","graphics","mesh","Mesh2"];
+haxor.graphics.mesh.Mesh2.__super__ = haxor.graphics.mesh.MeshLayout;
+haxor.graphics.mesh.Mesh2.prototype = $extend(haxor.graphics.mesh.MeshLayout.prototype,{
+	__class__: haxor.graphics.mesh.Mesh2
+});
+haxor.graphics.mesh.Mesh4 = function(p_name) {
+	haxor.graphics.mesh.MeshLayout.call(this,p_name);
+};
+$hxClasses["haxor.graphics.mesh.Mesh4"] = haxor.graphics.mesh.Mesh4;
+haxor.graphics.mesh.Mesh4.__name__ = ["haxor","graphics","mesh","Mesh4"];
+haxor.graphics.mesh.Mesh4.__super__ = haxor.graphics.mesh.MeshLayout;
+haxor.graphics.mesh.Mesh4.prototype = $extend(haxor.graphics.mesh.MeshLayout.prototype,{
+	__class__: haxor.graphics.mesh.Mesh4
+});
 haxor.graphics.texture = {};
 haxor.graphics.texture.Bitmap = function(p_width,p_height,p_format) {
 	haxor.core.Resource.call(this);
@@ -8526,6 +8871,1424 @@ haxor.io.file.Asset.Add = function(p_id,p_asset) {
 	var value = p_asset;
 	haxor.io.file.Asset.m_database.set(p_id,value);
 	if(js.Boot.__instanceof(p_asset,haxor.core.Resource)) (js.Boot.__cast(p_asset , haxor.core.Resource)).__db = p_id;
+};
+haxor.io.file.AssetFile = function(p_name) {
+	haxor.core.Resource.call(this,p_name);
+};
+$hxClasses["haxor.io.file.AssetFile"] = haxor.io.file.AssetFile;
+haxor.io.file.AssetFile.__name__ = ["haxor","io","file","AssetFile"];
+haxor.io.file.AssetFile.__super__ = haxor.core.Resource;
+haxor.io.file.AssetFile.prototype = $extend(haxor.core.Resource.prototype,{
+	get_asset: function() {
+		return null;
+	}
+	,stof32a: function(v,sep) {
+		if(sep == null) sep = " ";
+		var l = StringTools.trim(StringTools.replace(v,"\n"," ")).split(sep);
+		var a = [];
+		var _g1 = 0;
+		var _g = l.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			a.push(Std.parseFloat(l[i]));
+		}
+		return a;
+	}
+	,stoi16a: function(v,sep) {
+		if(sep == null) sep = " ";
+		var l = StringTools.trim(StringTools.replace(v,"\n"," ")).split(sep);
+		var a = [];
+		var _g1 = 0;
+		var _g = l.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			a.push(Std.parseInt(l[i]));
+		}
+		return a;
+	}
+	,stoi16ta: function(v,s,sep) {
+		if(sep == null) sep = " ";
+		var l = StringTools.trim(StringTools.replace(v,"\n"," ")).split(sep);
+		var tl = "";
+		var a = [];
+		var bf;
+		var k = 0;
+		while(k < l.length) {
+			bf = [];
+			var _g = 0;
+			while(_g < s) {
+				var j = _g++;
+				bf.push(Std.parseInt(l[k++]));
+			}
+			a.push(bf);
+		}
+		return a;
+	}
+	,__class__: haxor.io.file.AssetFile
+	,__properties__: $extend(haxor.core.Resource.prototype.__properties__,{get_asset:"get_asset"})
+});
+haxor.io.file.AssetXML = function(p_name,p_src) {
+	haxor.io.file.AssetFile.call(this,p_name);
+	this.x = Xml.parse(p_src);
+	this.TraverseStep(this.x.firstElement());
+};
+$hxClasses["haxor.io.file.AssetXML"] = haxor.io.file.AssetXML;
+haxor.io.file.AssetXML.__name__ = ["haxor","io","file","AssetXML"];
+haxor.io.file.AssetXML.__super__ = haxor.io.file.AssetFile;
+haxor.io.file.AssetXML.prototype = $extend(haxor.io.file.AssetFile.prototype,{
+	Parse: function(n) {
+	}
+	,TraverseStep: function(n) {
+		this.Parse(n);
+		var l = n.elements();
+		while(l.hasNext()) this.TraverseStep(l.next());
+	}
+	,_a: function(n,a,v) {
+		if(n.exists(a)) return n.get(a); else return v;
+	}
+	,_tla: function(n,a,v) {
+		if(n.exists(a)) return StringTools.trim(n.get(a)).toLowerCase(); else return v;
+	}
+	,_p: function(n,p,v,t,tl) {
+		if(tl == null) tl = false;
+		if(t == null) t = false;
+		var l = p.split(".");
+		var it = n;
+		var _g1 = 0;
+		var _g = l.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var tk = l[i];
+			switch(tk) {
+			case "$text":
+				if(it.firstChild() == null) return v;
+				var txt = it.firstChild().toString();
+				if(t) txt = StringTools.trim(txt);
+				if(tl) txt = txt.toLowerCase();
+				return txt;
+			default:
+				if(tk.charAt(0) == "@") {
+					if(t) {
+						if(tl) return this._tla(it,HxOverrides.substr(tk,1,null),v);
+					}
+					return this._a(it,HxOverrides.substr(tk,1,null),v);
+				}
+				var eit = it.elementsNamed(tk);
+				if(eit == null) return v;
+				if(i == l.length - 1) return eit;
+				if(!eit.hasNext()) return v;
+				it = eit.next();
+			}
+		}
+		return v;
+	}
+	,_f: function(n,p,a,t) {
+		var f = this._p(n,p,"");
+		var it;
+		if(f == "") it = null; else it = f;
+		if(it == null) return null;
+		while(it.hasNext()) {
+			var e = it.next();
+			if(this._a(e,a,"") == t) return e;
+		}
+		return null;
+	}
+	,__class__: haxor.io.file.AssetXML
+});
+haxor.io.file.ColladaFile = function(p_name,p_src) {
+	this.xmlns = "";
+	this.version = "";
+	this.data = new haxor.io.file.ColladaAssetData();
+	this.geometries = [];
+	this.images = [];
+	this.controllers = [];
+	this.materials = [];
+	this.animations = [];
+	this.lights = [];
+	this.scene = null;
+	this.m_id = Std["int"](Math.random() * 16777215);
+	haxor.io.file.AssetXML.call(this,p_name,p_src);
+};
+$hxClasses["haxor.io.file.ColladaFile"] = haxor.io.file.ColladaFile;
+haxor.io.file.ColladaFile.__name__ = ["haxor","io","file","ColladaFile"];
+haxor.io.file.ColladaFile.GenerateTriangles = function(p_type,p_indexes,p_vcount) {
+	var triangles = [];
+	switch(p_type) {
+	case "triangles":
+		if(p_indexes.length <= 0) triangles = []; else triangles = p_indexes[0];
+		break;
+	case "polygons":
+		var _g1 = 0;
+		var _g = p_indexes.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var tris = haxor.io.file.ColladaFile.TriangulatePolygon(p_indexes[i],p_indexes[i].length);
+			while(tris.length > 0) triangles.push(tris.shift());
+		}
+		break;
+	case "polylist":
+		var k = 0;
+		var _g11 = 0;
+		var _g2 = p_vcount.length;
+		while(_g11 < _g2) {
+			var i1 = _g11++;
+			var o = p_vcount[i1];
+			var tris1 = haxor.io.file.ColladaFile.TriangulatePolygon(p_indexes[0],o,k);
+			while(tris1.length > 0) triangles.push(tris1.shift());
+			k += o;
+		}
+		break;
+	}
+	return triangles;
+};
+haxor.io.file.ColladaFile.TriangulatePolygon = function(t,c,o) {
+	if(o == null) o = 0;
+	var i = 0;
+	var i0 = 0;
+	var i1 = 1;
+	var i2 = 2;
+	var res = [];
+	while(i2 < c) {
+		res.push(t[i0 + o].slice());
+		res.push(t[i1 + o].slice());
+		res.push(t[i2 + o].slice());
+		i1++;
+		i2++;
+	}
+	return res;
+};
+haxor.io.file.ColladaFile.__super__ = haxor.io.file.AssetXML;
+haxor.io.file.ColladaFile.prototype = $extend(haxor.io.file.AssetXML.prototype,{
+	get_asset: function() {
+		var _g3 = this;
+		var re = new haxor.core.Entity();
+		re.set_name("collada_asset");
+		if(this.scene == null) {
+			haxor.core.Console.LogError("ColladaFile> Trying to get asset of NULL scene.");
+			return re;
+		}
+		if(this.scene.name != "") re.set_name(this.scene.name); else if(this.scene.id != "") re.set_name(this.scene.id);
+		var hm = new haxe.ds.ObjectMap();
+		var cm = new haxe.ds.ObjectMap();
+		var mm = new haxe.ds.ObjectMap();
+		var joint_transforms = [];
+		var joint_nodes = [];
+		var skinned_meshes = [];
+		var _g1 = 0;
+		var _g = this.materials.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var m = this.materials[i];
+			var mn = m.name;
+			var _g2 = 0;
+			while(_g2 < 10) {
+				var i1 = _g2++;
+				mn = StringTools.replace(mn,"_" + i1,"");
+			}
+			mn = StringTools.replace(mn,"_","/");
+			var mat = haxor.io.file.Asset.Get(mn);
+			if(mat == null) {
+				mat = new haxor.graphics.material.Material();
+				mat.set_name(mn);
+				mat.set_shader(haxor.io.file.Asset.Get("haxor/unlit/FlatTexture"));
+				haxor.io.file.Asset.Add(mn,mat);
+			}
+			mm.set(m,mat);
+		}
+		this.scene.Traverse(function(n) {
+			var pe;
+			if(n.parent == null) pe = re; else if(hm.h.__keys__[n.parent.__id__] != null) pe = hm.h[n.parent.__id__]; else pe = re;
+			var ne = null;
+			if(n.name == "EnvironmentAmbientLight") return;
+			ne = new haxor.core.Entity();
+			ne.set_name("node" + ne.get_uid());
+			if(n.sid != "") ne.set_name(n.sid); else if(n.id != "") ne.set_name(n.id); else if(n.name != "") ne.set_name(n.name);
+			if(n.type == "joint") {
+				joint_transforms.push(ne.m_transform);
+				joint_nodes.push(n);
+			}
+			ne.m_transform.set_parent(pe.m_transform);
+			ne.m_transform.set_localPosition(n.position);
+			ne.m_transform.set_localRotation(n.rotation);
+			ne.m_transform.set_localScale(n.scale);
+			if(n.data != "") {
+				var ad = ne.AddComponent(haxor.component.DataComponent);
+				try {
+					ad.data = JSON.parse(n.data);
+				} catch( err ) {
+				}
+			}
+			hm.set(n,ne);
+			var _g11 = 0;
+			var _g4 = n.instances.length;
+			while(_g11 < _g4) {
+				var i2 = _g11++;
+				var ci = n.instances[i2];
+				var mr = null;
+				var cmat = null;
+				var cg = null;
+				var cc = null;
+				var cg_target = "";
+				var _g21 = ci.type;
+				switch(_g21) {
+				case "light":
+					var cl = _g3.FindLightById(ci.target);
+					if(cl == null) continue;
+					var _g41 = cl.type;
+					switch(_g41) {
+					case "ambient":
+						break;
+					case "point":
+						var pl = ne.AddComponent(haxor.component.PointLight);
+						pl.color.SetColor(cl.color);
+						pl.intensity = cl.intensity;
+						pl.radius = cl.radius * 2.0;
+						pl.atten = cl.atten;
+						break;
+					case "directional":
+						break;
+					}
+					continue;
+					break;
+				case "geometry":
+					cg_target = ci.target;
+					break;
+				case "controller":
+					cc = _g3.FindControllerById(ci.target);
+					if(cc != null) {
+						cm.set(ne.m_transform,cc);
+						cg_target = cc.source;
+					}
+					break;
+				}
+				cg = _g3.FindGeometryById(cg_target);
+				if(cg != null) {
+					var _g42 = 0;
+					var _g22 = cg.mesh.primitives.length;
+					while(_g42 < _g22) {
+						var i3 = _g42++;
+						var mn1 = cg.mesh.primitives[i3].material;
+						cmat = _g3.FindMaterialById(mn1);
+						mr = _g3.CreateMeshRenderer(ne,cg_target,cg.mesh.primitives[i3],cc == null?haxor.component.MeshRenderer:haxor.component.SkinnedMeshRenderer,cc);
+						if(cc != null) skinned_meshes.push(mr);
+						if(cmat != null) mr.set_material(mm.h.__keys__[cmat.__id__] != null?mm.h[cmat.__id__]:mr.m_material); else {
+							var _g5 = 0;
+							while(_g5 < 10) {
+								var i4 = _g5++;
+								mn1 = StringTools.replace(mn1,"_" + i4,"");
+							}
+							mn1 = StringTools.replace(mn1,"_","/");
+							var mat1 = haxor.io.file.Asset.Get(mn1);
+							mr.set_material(mat1);
+						}
+					}
+				}
+			}
+		});
+		var _g12 = 0;
+		var _g6 = skinned_meshes.length;
+		while(_g12 < _g6) {
+			var i5 = _g12++;
+			var skr = skinned_meshes[i5];
+			var cc1;
+			if(cm.h.__keys__[skr.m_entity.m_transform.__id__] != null) cc1 = cm.h[skr.m_entity.m_transform.__id__]; else cc1 = null;
+			if(cc1 == null) continue;
+			skr.set_joints([]);
+			var _g31 = 0;
+			var _g23 = cc1.joints.length;
+			while(_g31 < _g23) {
+				var j = _g31++;
+				var _g51 = 0;
+				var _g43 = joint_transforms.length;
+				while(_g51 < _g43) {
+					var k = _g51++;
+					if(joint_transforms[k].get_name() == cc1.joints[j]) skr.m_joints.push(joint_transforms[k]);
+				}
+			}
+		}
+		var nit = hm.keys();
+		while(nit.hasNext()) {
+			var n1 = nit.next();
+			var e = hm.h[n1.__id__];
+			if(e == re) continue;
+			e.set_name(n1.name);
+		}
+		this.AddAnimations(re);
+		if(this.data.axis == "z_up") re.m_transform.set_rotation(haxor.math.Quaternion.FromAxisAngle(new haxor.math.Vector3(1,0,0),-90.0));
+		return re;
+	}
+	,AddAnimations: function(p_entity,p_exact) {
+		if(p_exact == null) p_exact = true;
+	}
+	,CreateMeshRenderer: function(e,msh,cp,t,cc) {
+		var r = e.AddComponent(t);
+		var mid = msh + "_" + this.m_id;
+		var m = haxor.io.file.Asset.Get(mid);
+		if(m != null) {
+			r.set_mesh(m);
+			return r;
+		}
+		var mv = cp.GetTriangulatedVectorArray("vertex");
+		var mn = cp.GetTriangulatedVectorArray("normal");
+		var mc = cp.GetTriangulatedVectorArray("color");
+		var muv0 = cp.GetTriangulatedVectorArray("texcoord",0);
+		var muv1 = cp.GetTriangulatedVectorArray("texcoord",1);
+		var mbn = cp.GetTriangulatedVectorArray("texbinormal");
+		var mtg = cp.GetTriangulatedVectorArray("textangent");
+		var is_skinned = js.Boot.__instanceof(r,haxor.component.SkinnedMeshRenderer);
+		if(is_skinned) m = new haxor.graphics.mesh.SkinnedMesh3(); else m = new haxor.graphics.mesh.Mesh3();
+		m.set_name(mid);
+		haxor.io.file.Asset.Add(mid,m);
+		if(mc.length > 0) m.set_color(mc);
+		if(muv0.length > 0) m.set_uv0(muv0);
+		if(muv1.length > 0) m.set_uv1(muv1);
+		if(is_skinned) {
+			if(cc != null) {
+				cc.GenerateBonesAndWeights();
+				var skm = m;
+				var mvw = cc.GetTriangulatedWeights(cp);
+				var mbi = cc.GetTriangulatedBones(cp);
+				var mbm = cc.GetBinds();
+				skm.set_binds(mbm);
+				skm.set_weight(mvw);
+				skm.set_bone(mbi);
+				var bsm = cc.GetBSM();
+				var _g1 = 0;
+				var _g = mv.length;
+				while(_g1 < _g) {
+					var i = _g1++;
+					mv[i] = bsm.Transform3x4(mv[i].get_clone());
+				}
+				var _g11 = 0;
+				var _g2 = mn.length;
+				while(_g11 < _g2) {
+					var i1 = _g11++;
+					mn[i1] = bsm.Transform3x3(mn[i1].get_clone());
+				}
+				var _g12 = 0;
+				var _g3 = mbn.length;
+				while(_g12 < _g3) {
+					var i2 = _g12++;
+					mbn[i2] = bsm.Transform3x3(mbn[i2].get_clone());
+				}
+				var _g13 = 0;
+				var _g4 = mtg.length;
+				while(_g13 < _g4) {
+					var i3 = _g13++;
+					mtg[i3] = bsm.Transform3x3(mtg[i3].get_clone());
+				}
+			}
+		}
+		if(mv.length > 0) m.set_vertex(mv);
+		if(mn.length > 0) m.set_normal(mn);
+		if(mbn.length > 0) m.set_binormal(mbn);
+		if(mtg.length > 0) m.set_tangent(mtg);
+		m.GenerateBounds();
+		r.set_mesh(m);
+		return r;
+	}
+	,FindLightById: function(p_id) {
+		var _g1 = 0;
+		var _g = this.lights.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			if(this.lights[i].id == p_id) return this.lights[i];
+		}
+		return null;
+	}
+	,FindGeometryById: function(p_id) {
+		var _g1 = 0;
+		var _g = this.geometries.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			if(this.geometries[i].id == p_id) return this.geometries[i];
+		}
+		return null;
+	}
+	,FindControllerById: function(p_id) {
+		var _g1 = 0;
+		var _g = this.controllers.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			if(this.controllers[i].id == p_id) return this.controllers[i];
+		}
+		return null;
+	}
+	,FindNodeById: function(p_id) {
+		var res = null;
+		this.scene.Traverse(function(it) {
+			if(it.id == p_id) res = it;
+		});
+		return res;
+	}
+	,FindMaterialById: function(p_id) {
+		var _g1 = 0;
+		var _g = this.materials.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			if(this.materials[i].id == p_id) return this.materials[i]; else if(this.materials[i].name == p_id) return this.materials[i];
+		}
+		return null;
+	}
+	,Parse: function(n) {
+		var _g = n.get_nodeName();
+		switch(_g) {
+		case "COLLADA":
+			this.xmlns = this._a(n,"xmlns","");
+			this.version = this._a(n,"version","0.0");
+			break;
+		case "asset":
+			this.data.author = this._p(n,"contributor.author.$text","none");
+			this.data.tool = this._p(n,"contributor.authoring_tool.$text","none");
+			this.data.source = this._p(n,"contributor.source_data.$text","none");
+			this.data.axis = this._p(n,"up_axis.$text","y_up").toLowerCase();
+			this.data.creation = this._p(n,"created.$text","00/00/00");
+			this.data.modification = this._p(n,"modified.$text","00/00/00");
+			this.data.unitName = this._p(n,"unit.@name","none");
+			this.data.unitValue = Std.parseFloat(this._p(n,"unit.@meter","0.0"));
+			break;
+		case "library_effects":
+			break;
+		case "library_materials":
+			this.ParseMaterialLibrary(n);
+			break;
+		case "scene":
+			break;
+		case "library_geometries":
+			this.ParseGeometryLibrary(n);
+			break;
+		case "library_controllers":
+			this.ParseControllerLibrary(n);
+			break;
+		case "library_images":
+			this.ParseImageLibrary(n);
+			break;
+		case "library_visual_scenes":
+			this.ParseSceneLibrary(n);
+			break;
+		case "library_animations":
+			this.ParseAnimationLibrary(n);
+			break;
+		case "library_lights":
+			this.ParseLightLibrary(n);
+			break;
+		}
+	}
+	,ParseLightLibrary: function(n) {
+		var it = n.elementsNamed("light");
+		var l;
+		var lit;
+		var ln;
+		while(it.hasNext()) {
+			n = it.next();
+			l = new haxor.io.file.ColladaLight();
+			l.id = this._p(n,"@id","light" + this.lights.length);
+			l.name = this._p(n,"@name",l.id);
+			this.lights.push(l);
+			lit = n.elementsNamed("technique_common");
+			if(!lit.hasNext()) continue;
+			lit = lit.next().elements();
+			if(!lit.hasNext()) continue;
+			ln = lit.next();
+			l.type = ln.get_nodeName().toLowerCase();
+			var ca = [1,1,1,1];
+			var _g = l.type;
+			switch(_g) {
+			case "point":
+				ca = this._f32a(this._p(ln,"color.$text",""));
+				break;
+			case "ambient":
+				ca = this._f32a(this._p(ln,"color.$text",""));
+				break;
+			case "directional":
+				ca = this._f32a(this._p(ln,"color.$text",""));
+				break;
+			}
+			l.color.Set(ca[0],ca[1],ca[2],ca.length >= 4?ca[3]:1.0);
+			lit = n.elementsNamed("extra");
+			if(!lit.hasNext()) continue;
+			lit = lit.next().elementsNamed("technique");
+			if(!lit.hasNext()) continue;
+			lit = lit.next().elementsNamed("max_light");
+			if(!lit.hasNext()) continue;
+			ln = lit.next();
+			var _g1 = l.type;
+			switch(_g1) {
+			case "point":
+				l.radius = Std.parseFloat(this._p(ln,"decay_radius.$text","1.0"));
+				l.intensity = Std.parseFloat(this._p(ln,"multiplier.$text","1.0"));
+				var atten_type = Std.parseInt(this._p(ln,"decay_type.$text","1.0"));
+				if(atten_type == 0) l.atten = 0.0; else if(atten_type == 1) l.atten = 1.0; else l.atten = 2.0;
+				break;
+			case "ambient":
+				break;
+			case "directional":
+				l.intensity = Std.parseFloat(this._p(ln,"multiplier.$text","1.0"));
+				break;
+			}
+		}
+	}
+	,ParseAnimationLibrary: function(n) {
+		var it = n.elementsNamed("animation");
+		var anim_id = 0;
+		while(it.hasNext()) {
+			n = it.next();
+			if(n.elementsNamed("animation").hasNext()) n = n.elementsNamed("animation").next();
+			var ca = new haxor.io.file.ColladaAnimation();
+			ca.id = this._a(n,"id","");
+			if(ca.id == "") ca.id = "Clip" + anim_id++; else ca.id = ca.id;
+			ca.name = this._a(n,"name",ca.id);
+			var source_iterator = n.elementsNamed("source");
+			var sampler_iterator = n.elementsNamed("sampler");
+			var source_list = [];
+			var sampler_list = [];
+			while(source_iterator.hasNext()) source_list.push(source_iterator.next());
+			while(sampler_iterator.hasNext()) sampler_list.push(sampler_iterator.next());
+			var channel_list = n.elementsNamed("channel");
+			while(channel_list.hasNext()) {
+				var chn = channel_list.next();
+				var cch = new haxor.io.file.ColladaAnimationChannel();
+				var _this = this._a(chn,"source","");
+				cch.source = HxOverrides.substr(_this,1,null);
+				cch.target = this._a(chn,"target","");
+				var _g1 = 0;
+				var _g = sampler_list.length;
+				while(_g1 < _g) {
+					var i = _g1++;
+					var sampler_id = this._a(sampler_list[i],"id","");
+					if(sampler_id != cch.source) continue;
+					var input_iterator = sampler_list[i].elementsNamed("input");
+					var keyframe_time_source = "";
+					var keyframe_value_source = "";
+					while(input_iterator.hasNext()) {
+						var chsi = input_iterator.next();
+						var _g2 = this._a(chsi,"semantic","").toLowerCase();
+						switch(_g2) {
+						case "input":
+							var _this1 = this._a(chsi,"source","");
+							keyframe_time_source = HxOverrides.substr(_this1,1,null);
+							break;
+						case "output":
+							var _this2 = this._a(chsi,"source","");
+							keyframe_value_source = HxOverrides.substr(_this2,1,null);
+							break;
+						}
+					}
+					if(keyframe_time_source == "") continue;
+					if(keyframe_value_source == "") continue;
+					var kf_time_node = null;
+					var kf_value_node = null;
+					var _g3 = 0;
+					var _g21 = source_list.length;
+					while(_g3 < _g21) {
+						var j = _g3++;
+						var sn = source_list[j];
+						if(this._a(sn,"id","") == keyframe_time_source) kf_time_node = sn;
+						if(this._a(sn,"id","") == keyframe_value_source) kf_value_node = sn;
+					}
+					if(kf_time_node == null) continue;
+					if(kf_value_node == null) continue;
+					var kf_time_buffer = this._f32a(this._p(kf_time_node,"float_array.$text",""));
+					var kf_value_buffer = this._f32a(this._p(kf_value_node,"float_array.$text",""));
+					var kf_value_stride = Std.parseInt(this._p(kf_value_node,"technique_common.accessor.@stride","0"));
+					var _g31 = 0;
+					var _g22 = kf_time_buffer.length;
+					while(_g31 < _g22) {
+						var j1 = _g31++;
+						var kf = new haxor.io.file.ColladaAnimationKeyFrame();
+						kf.time = kf_time_buffer[j1];
+						var _g4 = 0;
+						while(_g4 < kf_value_stride) {
+							var k = _g4++;
+							kf.values.push(kf_value_buffer.shift());
+						}
+						cch.keyframes.push(kf);
+					}
+				}
+				ca.channels.push(cch);
+			}
+			this.animations.push(ca);
+		}
+	}
+	,ParseMaterialLibrary: function(n) {
+		var it = n.elements();
+		while(it.hasNext()) {
+			n = it.next();
+			var _g = n.get_nodeName();
+			switch(_g) {
+			case "material":
+				var mat = new haxor.io.file.ColladaMaterial();
+				mat.id = this._a(n,"id","");
+				mat.name = this._a(n,"name","");
+				if(mat.id == "") mat.id = mat.name;
+				this.materials.push(mat);
+				break;
+			}
+		}
+	}
+	,ParseSceneLibrary: function(n) {
+		var it = n.elements();
+		while(it.hasNext()) {
+			n = it.next();
+			var _g = n.get_nodeName();
+			switch(_g) {
+			case "visual_scene":
+				this.ParseVisualScene(n);
+				break;
+			}
+		}
+	}
+	,ParseVisualScene: function(n) {
+		if(this.scene != null) return;
+		this.scene = new haxor.io.file.ColladaVisualScene();
+		this.scene.id = this._a(n,"id","collada_scene");
+		this.scene.name = this._a(n,"name",this.scene.id);
+		this.scene.type = n.get_nodeName();
+		this.TraverseVisualSceneNodes(this.scene,null,n);
+	}
+	,TraverseVisualSceneNodes: function(scn,p,n) {
+		var cn = null;
+		if(n.get_nodeName() == "node") cn = this.ParseVisualSceneNode(scn,p,n);
+		var cn_it = n.elementsNamed("node");
+		while(cn_it.hasNext()) this.TraverseVisualSceneNodes(scn,cn,cn_it.next());
+	}
+	,ParseVisualSceneNode: function(scn,p,n) {
+		var cn = new haxor.io.file.ColladaNode();
+		cn.scene = scn;
+		cn.sid = this._a(n,"sid","node" + Std["int"](Math.random() * 16777215));
+		cn.id = this._a(n,"id",cn.sid);
+		cn.name = this._a(n,"name",cn.sid);
+		if(cn.sid == "") cn.sid = cn.id;
+		cn.type = this._a(n,"type","NODE").toLowerCase();
+		cn.matrix = this._f32a(this._p(n,"matrix.$text","1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1"));
+		cn.parent = p;
+		cn.GenerateTranform();
+		var iit = n.elements();
+		while(iit.hasNext()) {
+			var nin = iit.next();
+			var ni = null;
+			var _g = nin.get_nodeName();
+			switch(_g) {
+			case "instance_geometry":
+				ni = new haxor.io.file.ColladaInstance();
+				ni.type = "geometry";
+				var _this = this._a(nin,"url","");
+				ni.target = HxOverrides.substr(_this,1,null);
+				break;
+			case "instance_controller":
+				ni = new haxor.io.file.ColladaInstance();
+				ni.type = "controller";
+				var _this1 = this._a(nin,"url","");
+				ni.target = HxOverrides.substr(_this1,1,null);
+				break;
+			case "instance_light":
+				ni = new haxor.io.file.ColladaInstance();
+				ni.type = "light";
+				var _this2 = this._a(nin,"url","");
+				ni.target = HxOverrides.substr(_this2,1,null);
+				break;
+			case "extra":
+				cn.data = this._p(nin,"technique.user_properties.$text","");
+				if(cn.data.indexOf(";") < 0) cn.data = "";
+				break;
+			}
+			if(ni != null) cn.instances.push(ni);
+		}
+		if(p == null) scn.children.push(cn); else p.children.push(cn);
+		return cn;
+	}
+	,ParseInstanceMaterials: function(ci,n) {
+	}
+	,ParseControllerLibrary: function(n) {
+		var it = n.elementsNamed("controller");
+		var c = null;
+		while(it.hasNext()) {
+			n = it.next();
+			c = new haxor.io.file.ColladaController();
+			c.id = this._a(n,"id","none");
+			c.name = this._a(n,"name",c.id);
+			this.ParseController(c,n);
+			this.controllers.push(c);
+		}
+	}
+	,ParseController: function(c,n) {
+		n = n.firstElement();
+		if(n == null) return;
+		if(n.get_nodeName() == null) c.type = "none"; else c.type = n.get_nodeName().toLowerCase();
+		var _g = c.type;
+		switch(_g) {
+		case "skin":
+			this.ParseControllerSkin(c,n);
+			break;
+		case "morph":
+			break;
+		}
+	}
+	,ParseControllerSkin: function(c,n) {
+		var _this = this._a(n,"source","");
+		c.source = HxOverrides.substr(_this,1,null);
+		c.matrix = this._f32a(this._p(n,"bind_shape_matrix.$text",""));
+		var source = "";
+		var sn = null;
+		var jn;
+		if(this._p(n,"joints") == null) jn = null; else jn = this._p(n,"joints").next();
+		if(jn != null) {
+			var jn_it = jn.elementsNamed("input");
+			while(jn_it.hasNext()) {
+				var jni = jn_it.next();
+				var _this1 = this._a(jni,"source","");
+				source = HxOverrides.substr(_this1,1,null);
+				if(source == "") continue;
+				sn = this._f(n,"source","id",source);
+				if(sn == null) continue;
+				var _g = this._a(jni,"semantic","").toLowerCase();
+				switch(_g) {
+				case "joint":
+					c.joints = StringTools.trim(StringTools.replace(this._p(sn,"Name_array.$text",""),"\n"," ")).split(" ");
+					break;
+				case "inv_bind_matrix":
+					var ml = this._f32a(this._p(sn,"float_array.$text",""));
+					while(ml.length > 0) {
+						var mtx = [];
+						var _g1 = 0;
+						while(_g1 < 16) {
+							var i = _g1++;
+							mtx.push(ml.shift());
+						}
+						c.binds.push(mtx);
+					}
+					break;
+				}
+			}
+		}
+		var vwn;
+		if(this._p(n,"vertex_weights") == null) vwn = null; else vwn = this._p(n,"vertex_weights").next();
+		if(vwn != null) {
+			c.inputs = this.ParseInputList(n,vwn);
+			c.vcount = this._i16a(this._p(vwn,"vcount.$text",""));
+			var vwb = this._p(vwn,"v.$text","");
+			c.indexes = this._i16ta(vwb,c.get_offset());
+		}
+	}
+	,ParseImageLibrary: function(n) {
+		var it = n.elementsNamed("image");
+		var img = null;
+		while(it.hasNext()) {
+			n = it.next();
+			img = new haxor.io.file.ColladaImage();
+			img.id = this._a(n,"id","none");
+			img.name = this._a(n,"name",img.id);
+			img.format = this._a(n,"format","");
+			img.width = Std.parseInt(this._a(n,"width","-1"));
+			img.height = Std.parseInt(this._a(n,"height","-1"));
+			img.depth = Std.parseInt(this._a(n,"depth","-1"));
+			this.images.push(img);
+		}
+	}
+	,ParseGeometryLibrary: function(n) {
+		var it = n.elementsNamed("geometry");
+		var g = null;
+		while(it.hasNext()) {
+			n = it.next();
+			g = new haxor.io.file.ColladaGeometry();
+			g.id = this._a(n,"id","none");
+			g.name = this._a(n,"name","none");
+			this.ParseGeometry(g,n);
+			this.geometries.push(g);
+		}
+	}
+	,ParseGeometry: function(g,n) {
+		n = n.firstElement();
+		if(n == null) return;
+		g.mesh = new haxor.io.file.ColladaMesh();
+		if(n.get_nodeName() == null) g.mesh.type = "none"; else g.mesh.type = n.get_nodeName().toLowerCase();
+		var _g = g.mesh.type;
+		switch(_g) {
+		case "mesh":
+			this.ParseMesh(g.mesh,n);
+			break;
+		case "convex_mesh":
+			break;
+		case "spline":
+			break;
+		}
+	}
+	,ParseMesh: function(m,n) {
+		var it = n.elements();
+		var p = n;
+		while(it.hasNext()) {
+			n = it.next();
+			if(n.get_nodeName() == "vertices") continue;
+			if(n.get_nodeName() == "source") continue;
+			var cp = new haxor.io.file.ColladaPrimitive();
+			cp.type = n.get_nodeName();
+			cp.material = this._a(n,"material","");
+			this.ParsePrimitive(cp,p,n);
+			m.primitives.push(cp);
+		}
+	}
+	,ParsePrimitive: function(cp,p,n) {
+		cp.inputs = this.ParseInputList(p,n);
+		var p_it = n.elementsNamed("p");
+		var vc_it = n.elementsNamed("vcount");
+		if(vc_it.hasNext()) {
+			var ncitn = vc_it.next().firstChild();
+			if(ncitn == null) cp.vcount = []; else cp.vcount = this._i16a(ncitn.toString());
+		}
+		while(p_it.hasNext()) {
+			var vn = p_it.next();
+			var vb;
+			if(vn.firstChild() != null) vb = vn.firstChild().toString(); else vb = "0";
+			var off = cp.get_offset();
+			var ti = this._i16ta(vb,off);
+			cp.indexes.push(ti);
+		}
+	}
+	,ParseInputList: function(p,n) {
+		var l = [];
+		var it = n.elementsNamed("input");
+		while(it.hasNext()) {
+			var pi = it.next();
+			var ci = new haxor.io.file.ColladaInput();
+			var source = this._a(pi,"source","");
+			ci.semantic = this._a(pi,"semantic","").toLowerCase();
+			ci.offset = Std.parseInt(this._a(pi,"offset","-1"));
+			ci.set = Std.parseInt(this._a(pi,"set","-1"));
+			if(ci.semantic == "joint") {
+				l.push(ci);
+				continue;
+			}
+			if(ci.semantic == "vertex") source = this._p(p,"vertices.input.@source","");
+			if(source == "") continue;
+			source = HxOverrides.substr(source,1,null);
+			var sn = this._f(p,"source","id",source);
+			if(sn == null) continue;
+			var stride_str = this._p(sn,"technique_common.accessor.@stride","0");
+			ci.stride = Std.parseInt(stride_str);
+			ci.values = this._f32a(this._p(sn,"float_array.$text",""));
+			l.push(ci);
+		}
+		return l;
+	}
+	,TraverseStep: function(n) {
+		this.Parse(n);
+		var l = n.elements();
+		while(l.hasNext()) this.TraverseStep(l.next());
+	}
+	,_f32a: function(v) {
+		var l = StringTools.trim(StringTools.replace(v,"\n"," ")).split(" ");
+		var a = [];
+		var _g1 = 0;
+		var _g = l.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			a.push(Std.parseFloat(l[i]));
+		}
+		return a;
+	}
+	,_i16a: function(v) {
+		var l = StringTools.trim(StringTools.replace(v,"\n"," ")).split(" ");
+		var a = [];
+		var _g1 = 0;
+		var _g = l.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			a.push(Std.parseInt(l[i]));
+		}
+		return a;
+	}
+	,_i16ta: function(v,s) {
+		var l = StringTools.trim(StringTools.replace(v,"\n"," ")).split(" ");
+		var tl = "";
+		var a = [];
+		var bf;
+		var k = 0;
+		while(k < l.length) {
+			bf = [];
+			var _g = 0;
+			while(_g < s) {
+				var j = _g++;
+				bf.push(Std.parseInt(l[k++]));
+			}
+			a.push(bf);
+		}
+		return a;
+	}
+	,__class__: haxor.io.file.ColladaFile
+});
+haxor.io.file.ColladaAssetData = function() {
+	this.axis = "y_up";
+	this.unitValue = 0.0;
+	this.unitName = "";
+	this.modification = "";
+	this.creation = "";
+	this.source = "";
+	this.tool = "";
+	this.author = "";
+};
+$hxClasses["haxor.io.file.ColladaAssetData"] = haxor.io.file.ColladaAssetData;
+haxor.io.file.ColladaAssetData.__name__ = ["haxor","io","file","ColladaAssetData"];
+haxor.io.file.ColladaAssetData.prototype = {
+	__class__: haxor.io.file.ColladaAssetData
+};
+haxor.io.file.ColladaGeometry = function() {
+	this.mesh = null;
+	this.name = "";
+	this.id = "";
+};
+$hxClasses["haxor.io.file.ColladaGeometry"] = haxor.io.file.ColladaGeometry;
+haxor.io.file.ColladaGeometry.__name__ = ["haxor","io","file","ColladaGeometry"];
+haxor.io.file.ColladaGeometry.prototype = {
+	__class__: haxor.io.file.ColladaGeometry
+};
+haxor.io.file.ColladaMesh = function() {
+	this.primitives = null;
+	this.type = "";
+	this.primitives = [];
+};
+$hxClasses["haxor.io.file.ColladaMesh"] = haxor.io.file.ColladaMesh;
+haxor.io.file.ColladaMesh.__name__ = ["haxor","io","file","ColladaMesh"];
+haxor.io.file.ColladaMesh.prototype = {
+	__class__: haxor.io.file.ColladaMesh
+};
+haxor.io.file.ColladaPrimitive = function() {
+	this.indexes = null;
+	this.vcount = null;
+	this.inputs = null;
+	this.material = "";
+	this.type = "";
+	this.inputs = [];
+	this.vcount = [];
+	this.indexes = [];
+	this.m_triangles = null;
+};
+$hxClasses["haxor.io.file.ColladaPrimitive"] = haxor.io.file.ColladaPrimitive;
+haxor.io.file.ColladaPrimitive.__name__ = ["haxor","io","file","ColladaPrimitive"];
+haxor.io.file.ColladaPrimitive.prototype = {
+	get_triangles: function() {
+		if(this.m_triangles != null) return this.m_triangles;
+		this.m_triangles = haxor.io.file.ColladaFile.GenerateTriangles(this.type,this.indexes,this.vcount);
+		return this.m_triangles;
+	}
+	,get_offset: function() {
+		var mo = 0;
+		var _g1 = 0;
+		var _g = this.inputs.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			mo = Math.max(mo,this.inputs[i].offset + 1);
+		}
+		return mo;
+	}
+	,GetInput: function(p_semantic,p_set) {
+		if(p_set == null) p_set = -1;
+		var _g1 = 0;
+		var _g = this.inputs.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			if(this.inputs[i].semantic == p_semantic) {
+				if(p_set < 0) return this.inputs[i]; else if(p_set == this.inputs[i].set) return this.inputs[i];
+			}
+		}
+		return null;
+	}
+	,GetTriangulatedVectorArray: function(p_semantic,p_set,p_debug) {
+		if(p_debug == null) p_debug = false;
+		if(p_set == null) p_set = -1;
+		var ci = this.GetInput(p_semantic,p_set);
+		if(ci == null) return [];
+		var vec = ci.GetVectorArray();
+		var off = ci.offset;
+		var res = [];
+		if(vec.length <= 0) return [];
+		if(off < 0) return [];
+		var _g1 = 0;
+		var _g = this.get_triangles().length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var tuple = this.get_triangles()[i];
+			var idx = tuple[off];
+			res.push(vec[idx]);
+		}
+		return res;
+	}
+	,GetVectorArray: function(p_semantic,p_set) {
+		if(p_set == null) p_set = -1;
+		var res = [];
+		var _g1 = 0;
+		var _g = this.inputs.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			if(this.inputs[i].semantic == p_semantic) {
+				if(p_set < 0) {
+					res = this.inputs[i].GetVectorArray();
+					break;
+				} else if(p_set == this.inputs[i].set) {
+					res = this.inputs[i].GetVectorArray();
+					break;
+				}
+			}
+		}
+		if(p_semantic == "color") {
+			if(p_set < 0) {
+				var l = this.GetVectorArray("color",0);
+				if(l.length > 0) {
+					var len = Math.min(l.length,res.length);
+					var _g2 = 0;
+					while(_g2 < len) {
+						var i1 = _g2++;
+						res[i1].a = l[i1].r;
+					}
+				}
+			}
+		}
+		return res;
+	}
+	,__class__: haxor.io.file.ColladaPrimitive
+	,__properties__: {get_offset:"get_offset",get_triangles:"get_triangles"}
+};
+haxor.io.file.ColladaInput = function() {
+	this.stride = 0;
+	this.values = null;
+	this.set = -1;
+	this.offset = 0;
+	this.semantic = "";
+	this.values = [];
+};
+$hxClasses["haxor.io.file.ColladaInput"] = haxor.io.file.ColladaInput;
+haxor.io.file.ColladaInput.__name__ = ["haxor","io","file","ColladaInput"];
+haxor.io.file.ColladaInput.prototype = {
+	GetVectorArray: function() {
+		if(this.stride <= 0) return [];
+		var res = [];
+		var i = 0;
+		while(i < this.values.length) {
+			var v = null;
+			var _g = this.stride;
+			switch(_g) {
+			case 1:
+				v = this.values[i];
+				break;
+			case 2:
+				v = new haxor.math.Vector2(this.values[i],this.values[i + 1]);
+				break;
+			case 3:
+				if(this.semantic == "color") v = new haxor.math.Color(this.values[i],this.values[i + 1],this.values[i + 2]); else v = new haxor.math.Vector3(this.values[i],this.values[i + 1],this.values[i + 2]);
+				break;
+			case 4:
+				if(this.semantic == "color") v = new haxor.math.Color(this.values[i],this.values[i + 1],this.values[i + 2],this.values[i + 3]); else v = new haxor.math.Vector4(this.values[i],this.values[i + 1],this.values[i + 2],this.values[i + 3]);
+				break;
+			}
+			if(v == null) continue;
+			res.push(v);
+			i += this.stride;
+		}
+		return res;
+	}
+	,__class__: haxor.io.file.ColladaInput
+};
+haxor.io.file.ColladaImage = function() {
+	this.data = null;
+	this.depth = 0;
+	this.height = 0;
+	this.width = 0;
+	this.source = "";
+	this.format = "";
+	this.name = "";
+	this.id = "";
+};
+$hxClasses["haxor.io.file.ColladaImage"] = haxor.io.file.ColladaImage;
+haxor.io.file.ColladaImage.__name__ = ["haxor","io","file","ColladaImage"];
+haxor.io.file.ColladaImage.prototype = {
+	__class__: haxor.io.file.ColladaImage
+};
+haxor.io.file.ColladaController = function() {
+	this.bones = null;
+	this.weights = null;
+	this.indexes = null;
+	this.vcount = null;
+	this.inputs = null;
+	this.joints = null;
+	this.binds = null;
+	this.matrix = null;
+	this.name = "";
+	this.id = "";
+	this.source = "";
+	this.type = "";
+	this.matrix = [];
+	this.binds = [];
+	this.inputs = [];
+	this.joints = [];
+	this.vcount = [];
+	this.indexes = [];
+};
+$hxClasses["haxor.io.file.ColladaController"] = haxor.io.file.ColladaController;
+haxor.io.file.ColladaController.__name__ = ["haxor","io","file","ColladaController"];
+haxor.io.file.ColladaController.prototype = {
+	get_offset: function() {
+		var mo = 0;
+		var _g1 = 0;
+		var _g = this.inputs.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			mo = Math.max(mo,this.inputs[i].offset + 1);
+		}
+		return mo;
+	}
+	,GetBSM: function() {
+		var mtx = new haxor.math.Matrix4(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1);
+		var _g1 = 0;
+		var _g = this.matrix.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			mtx.SetIndex(i,this.matrix[i]);
+		}
+		return mtx;
+	}
+	,GetJointIndex: function(p_joint) {
+		var _g1 = 0;
+		var _g = this.joints.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			if(p_joint == this.joints[i]) return i;
+		}
+		return -1;
+	}
+	,GetBinds: function() {
+		var res = [];
+		var _g1 = 0;
+		var _g = this.binds.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var mtx = new haxor.math.Matrix4(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1);
+			var _g3 = 0;
+			var _g2 = this.binds[i].length;
+			while(_g3 < _g2) {
+				var j = _g3++;
+				mtx.SetIndex(j,this.binds[i][j]);
+			}
+			res.push(mtx);
+		}
+		return res;
+	}
+	,GetTriangulatedWeights: function(cp) {
+		var v_off = cp.GetInput("vertex").offset;
+		var res = [];
+		var _g1 = 0;
+		var _g = cp.get_triangles().length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var idx = cp.get_triangles()[i][v_off];
+			res.push(this.weights[idx]);
+		}
+		return res;
+	}
+	,GetTriangulatedBones: function(cp) {
+		var v_off = cp.GetInput("vertex").offset;
+		var res = [];
+		var _g1 = 0;
+		var _g = cp.get_triangles().length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var idx = cp.get_triangles()[i][v_off];
+			res.push(this.bones[idx]);
+		}
+		return res;
+	}
+	,GenerateBonesAndWeights: function() {
+		this.weights = [];
+		this.bones = [];
+		var off = this.get_offset();
+		var wi = null;
+		var wo = 0;
+		var bo = 0;
+		var _g1 = 0;
+		var _g = this.inputs.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			if(this.inputs[i].semantic == "weight") {
+				wi = this.inputs[i];
+				wo = wi.offset;
+			}
+			if(this.inputs[i].semantic == "joint") bo = this.inputs[i].offset;
+		}
+		var k = 0;
+		var _g11 = 0;
+		var _g2 = this.vcount.length;
+		while(_g11 < _g2) {
+			var i1 = _g11++;
+			var n = this.vcount[i1];
+			var wv4 = new haxor.math.Vector4();
+			var bv4 = new haxor.math.Vector4();
+			var _g21 = 0;
+			while(_g21 < n) {
+				var j = _g21++;
+				var bi = this.indexes[k][bo];
+				var wv = wi.values[this.indexes[k][wo]];
+				if(j == 0) {
+					wv4.x = wv;
+					bv4.x = bi;
+				} else if(j == 1) {
+					wv4.y = wv;
+					bv4.y = bi;
+				} else if(j == 2) {
+					wv4.z = wv;
+					bv4.z = bi;
+				} else if(j == 3) {
+					wv4.w = wv;
+					bv4.w = bi;
+				}
+				k++;
+			}
+			var sum = wv4.x + wv4.y + wv4.z + wv4.w;
+			if(sum <= 0) sum = 0.0; else sum = 1.0 / sum;
+			wv4.Scale(sum);
+			this.weights.push(wv4);
+			this.bones.push(bv4);
+		}
+	}
+	,__class__: haxor.io.file.ColladaController
+	,__properties__: {get_offset:"get_offset"}
+};
+haxor.io.file.ColladaVisualScene = function() {
+	this.children = null;
+	this.name = "";
+	this.id = "";
+	this.type = "";
+	this.children = [];
+};
+$hxClasses["haxor.io.file.ColladaVisualScene"] = haxor.io.file.ColladaVisualScene;
+haxor.io.file.ColladaVisualScene.__name__ = ["haxor","io","file","ColladaVisualScene"];
+haxor.io.file.ColladaVisualScene.prototype = {
+	Traverse: function(p_callback) {
+		var _g1 = 0;
+		var _g = this.children.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			this.TraverseStep(this.children[i],p_callback);
+		}
+	}
+	,TraverseStep: function(p_node,p_callback) {
+		if(p_callback != null) p_callback(p_node);
+		var _g1 = 0;
+		var _g = p_node.children.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			this.TraverseStep(p_node.children[i],p_callback);
+		}
+	}
+	,__class__: haxor.io.file.ColladaVisualScene
+};
+haxor.io.file.ColladaNode = function() {
+	this.instances = null;
+	this.local = null;
+	this.data = "";
+	this.children = null;
+	this.parent = null;
+	this.scene = null;
+	this.matrix = null;
+	this.name = "";
+	this.sid = "";
+	this.id = "";
+	this.type = "";
+	this.children = [];
+	this.instances = [];
+	this.matrix = [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1];
+	this.position = new haxor.math.Vector3(0,0,0);
+	this.rotation = new haxor.math.Quaternion(0,0,0,1.0);
+	this.scale = new haxor.math.Vector3(1,1,1);
+};
+$hxClasses["haxor.io.file.ColladaNode"] = haxor.io.file.ColladaNode;
+haxor.io.file.ColladaNode.__name__ = ["haxor","io","file","ColladaNode"];
+haxor.io.file.ColladaNode.prototype = {
+	get_world: function() {
+		if(this.m_world != null) return this.m_world;
+		this.m_world = new haxor.math.Matrix4(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1);
+		var it = this;
+		var h = [];
+		while(it != null) {
+			h.push(it);
+			it = it.parent;
+		}
+		h.reverse();
+		var _g1 = 0;
+		var _g = h.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			this.m_world.MultiplyTransform(h[i].local);
+		}
+		return this.m_world;
+	}
+	,GenerateTranform: function() {
+		var mtx = this.local = haxor.math.Matrix4.FromArray(this.matrix);
+		this.position = new haxor.math.Matrix4(1,0,0,mtx.m03,0,1,0,mtx.m13,0,0,1,mtx.m23,0,0,0,1).GetColumn(3,null).get_xyz();
+		this.rotation = haxor.math.Quaternion.FromMatrix4(haxor.context.EngineContext.data.get_m4().SetMatrix4(mtx).ToRotation());
+		this.scale = mtx.get_scale().get_diagonalLR().get_xyz();
+	}
+	,__class__: haxor.io.file.ColladaNode
+	,__properties__: {get_world:"get_world"}
+};
+haxor.io.file.ColladaInstance = function() {
+	this.target = "";
+	this.type = "";
+	this.materials = [];
+};
+$hxClasses["haxor.io.file.ColladaInstance"] = haxor.io.file.ColladaInstance;
+haxor.io.file.ColladaInstance.__name__ = ["haxor","io","file","ColladaInstance"];
+haxor.io.file.ColladaInstance.prototype = {
+	__class__: haxor.io.file.ColladaInstance
+};
+haxor.io.file.ColladaMaterial = function() {
+	this.name = "";
+	this.id = "";
+};
+$hxClasses["haxor.io.file.ColladaMaterial"] = haxor.io.file.ColladaMaterial;
+haxor.io.file.ColladaMaterial.__name__ = ["haxor","io","file","ColladaMaterial"];
+haxor.io.file.ColladaMaterial.prototype = {
+	__class__: haxor.io.file.ColladaMaterial
+};
+haxor.io.file.ColladaAnimation = function() {
+	this.name = "";
+	this.id = "";
+	this.channels = [];
+};
+$hxClasses["haxor.io.file.ColladaAnimation"] = haxor.io.file.ColladaAnimation;
+haxor.io.file.ColladaAnimation.__name__ = ["haxor","io","file","ColladaAnimation"];
+haxor.io.file.ColladaAnimation.prototype = {
+	__class__: haxor.io.file.ColladaAnimation
+};
+haxor.io.file.ColladaAnimationChannel = function() {
+	this.target = "";
+	this.source = "";
+	this.keyframes = [];
+};
+$hxClasses["haxor.io.file.ColladaAnimationChannel"] = haxor.io.file.ColladaAnimationChannel;
+haxor.io.file.ColladaAnimationChannel.__name__ = ["haxor","io","file","ColladaAnimationChannel"];
+haxor.io.file.ColladaAnimationChannel.prototype = {
+	__class__: haxor.io.file.ColladaAnimationChannel
+};
+haxor.io.file.ColladaAnimationKeyFrame = function() {
+	this.time = 0.0;
+	this.values = [];
+};
+$hxClasses["haxor.io.file.ColladaAnimationKeyFrame"] = haxor.io.file.ColladaAnimationKeyFrame;
+haxor.io.file.ColladaAnimationKeyFrame.__name__ = ["haxor","io","file","ColladaAnimationKeyFrame"];
+haxor.io.file.ColladaAnimationKeyFrame.prototype = {
+	__class__: haxor.io.file.ColladaAnimationKeyFrame
+};
+haxor.io.file.ColladaLight = function() {
+	this.id = "";
+	this.name = "";
+	this.type = "";
+	this.color = new haxor.math.Color(1,1,1,1);
+	this.radius = 0.0;
+	this.intensity = 0.0;
+	this.atten = 0.0;
+};
+$hxClasses["haxor.io.file.ColladaLight"] = haxor.io.file.ColladaLight;
+haxor.io.file.ColladaLight.__name__ = ["haxor","io","file","ColladaLight"];
+haxor.io.file.ColladaLight.prototype = {
+	__class__: haxor.io.file.ColladaLight
 };
 haxor.math.AABB3 = function(p_x,p_y,p_z,p_width,p_height,p_depth) {
 	if(p_depth == null) p_depth = 0;
@@ -10738,6 +12501,327 @@ haxor.math.Vector4.prototype = {
 	,__class__: haxor.math.Vector4
 	,__properties__: {get_normalized:"get_normalized",get_lengthSqr:"get_lengthSqr",get_length:"get_length",get_xy:"get_xy",get_xyz:"get_xyz",get_rgb:"get_rgb",get_rgba:"get_rgba",get_clone:"get_clone"}
 };
+haxor.thread = {};
+haxor.thread.Activity = function(p_callback,p_threaded,p_graphics_context) {
+	if(p_graphics_context == null) p_graphics_context = false;
+	if(p_threaded == null) p_threaded = false;
+	haxor.core.Resource.call(this);
+	if(p_callback == null) return;
+	this.m_time_start = haxor.core.Time.m_elapsed;
+	this.m_elapsed = 0.0;
+	this.m_callback = p_callback;
+	this.m_cancelled = false;
+	p_threaded = false;
+	if(p_graphics_context) p_threaded = false;
+	if(!p_threaded) {
+		if(p_graphics_context) haxor.context.EngineContext.render.Add(this); else haxor.context.EngineContext.update.Add(this);
+	} else {
+	}
+};
+$hxClasses["haxor.thread.Activity"] = haxor.thread.Activity;
+haxor.thread.Activity.__name__ = ["haxor","thread","Activity"];
+haxor.thread.Activity.__interfaces__ = [haxor.core.IRenderable,haxor.core.IUpdateable];
+haxor.thread.Activity.Iterate = function(p_offset,p_length,p_callback,p_step,p_threaded,p_graphics_context) {
+	if(p_graphics_context == null) p_graphics_context = false;
+	if(p_threaded == null) p_threaded = false;
+	if(p_step == null) p_step = 1;
+	var it = p_offset;
+	return new haxor.thread.Activity(function(t) {
+		var finished = false;
+		var _g = 0;
+		while(_g < p_step) {
+			var i = _g++;
+			if(it >= p_length) return false;
+			if(!p_callback(it)) {
+				finished = true;
+				break;
+			}
+			it++;
+		}
+		return !finished;
+	},p_threaded,p_graphics_context);
+};
+haxor.thread.Activity.Delay = function(p_time,p_callback,p_threaded,p_graphics_context) {
+	if(p_graphics_context == null) p_graphics_context = false;
+	if(p_threaded == null) p_threaded = false;
+	return new haxor.thread.Activity(function(t) {
+		if(t >= p_time) {
+			p_callback();
+			return false;
+		}
+		return true;
+	},p_threaded,p_graphics_context);
+};
+haxor.thread.Activity.Run = function(p_callback,p_threaded,p_graphics_context) {
+	if(p_graphics_context == null) p_graphics_context = false;
+	if(p_threaded == null) p_threaded = false;
+	return new haxor.thread.Activity(p_callback,p_threaded,p_graphics_context);
+};
+haxor.thread.Activity.RunOnce = function(p_callback,p_threaded,p_graphics_context) {
+	if(p_graphics_context == null) p_graphics_context = false;
+	if(p_threaded == null) p_threaded = false;
+	return new haxor.thread.Activity(function(t) {
+		p_callback();
+		return false;
+	},p_threaded,p_graphics_context);
+};
+haxor.thread.Activity.__super__ = haxor.core.Resource;
+haxor.thread.Activity.prototype = $extend(haxor.core.Resource.prototype,{
+	get_elapsed: function() {
+		return this.m_elapsed;
+	}
+	,Cancel: function() {
+		this.m_cancelled = true;
+	}
+	,OnUpdate: function() {
+		this.OnRun();
+	}
+	,OnRender: function() {
+		this.OnRun();
+	}
+	,OnRun: function() {
+		if(this.m_cancelled) {
+			haxor.core.Resource.Destroy(this);
+			return;
+		}
+		this.m_elapsed = haxor.core.Time.m_elapsed - this.m_time_start;
+		if(!this.m_callback(this.m_elapsed)) haxor.core.Resource.Destroy(this);
+	}
+	,__class__: haxor.thread.Activity
+	,__properties__: $extend(haxor.core.Resource.prototype.__properties__,{get_elapsed:"get_elapsed"})
+});
+haxor.thread.Task = function(p_threaded,p_callback) {
+	if(p_threaded == null) p_threaded = false;
+	var cb = p_callback;
+	if(cb == null) cb = $bind(this,this.OnExecute);
+	haxor.thread.Activity.call(this,cb,p_threaded);
+	this.m_active = false;
+	this.m_progress = 0.0;
+	this.m_has_progress = false;
+};
+$hxClasses["haxor.thread.Task"] = haxor.thread.Task;
+haxor.thread.Task.__name__ = ["haxor","thread","Task"];
+haxor.thread.Task.__super__ = haxor.thread.Activity;
+haxor.thread.Task.prototype = $extend(haxor.thread.Activity.prototype,{
+	get_progress: function() {
+		return this.m_progress;
+	}
+	,set_progress: function(v) {
+		if(Math.abs(v - this.m_progress) > 0.0) {
+			this.m_progress = v;
+			this.m_has_progress = true;
+		}
+		return v;
+	}
+	,get_active: function() {
+		return this.m_active;
+	}
+	,OnStart: function() {
+	}
+	,OnStep: function() {
+	}
+	,OnComplete: function() {
+	}
+	,OnProgress: function() {
+	}
+	,OnExecute: function(p_time) {
+		if(!this.m_active) {
+			this.m_active = true;
+			this.OnStart();
+		}
+		this.OnStep();
+		if(this.m_has_progress) {
+			this.OnProgress();
+			this.m_has_progress = false;
+		}
+		if(this.m_progress >= 1.0) {
+			this.OnComplete();
+			return false;
+		}
+		return true;
+	}
+	,__class__: haxor.thread.Task
+	,__properties__: $extend(haxor.thread.Activity.prototype.__properties__,{get_active:"get_active",set_progress:"set_progress",get_progress:"get_progress"})
+});
+haxor.net = {};
+haxor.net.HTTPRequestTask = function(p_url,p_method,p_binary,p_data) {
+	haxor.thread.Task.call(this);
+	if(p_url.indexOf("./") >= 0) p_url = StringTools.replace(p_url,"./",haxor.net.Web.root);
+	this.url = p_url;
+	this.binary = p_binary;
+	this.method = p_method;
+	this.data = p_data;
+	this.bytesLoaded = 0;
+	this.bytesTotal = 0;
+	this.error = "";
+	haxor.core.Console.Log("HTTPRequest> " + this.url,4);
+};
+$hxClasses["haxor.net.HTTPRequestTask"] = haxor.net.HTTPRequestTask;
+haxor.net.HTTPRequestTask.__name__ = ["haxor","net","HTTPRequestTask"];
+haxor.net.HTTPRequestTask.__super__ = haxor.thread.Task;
+haxor.net.HTTPRequestTask.prototype = $extend(haxor.thread.Task.prototype,{
+	OnStart: function() {
+	}
+	,OnError: function() {
+		haxor.core.Console.LogError("HTTPRequest> Error [" + this.error + "]");
+	}
+	,__class__: haxor.net.HTTPRequestTask
+});
+haxor.platform.html.net = {};
+haxor.platform.html.net.HTTPRequest = function(p_url,p_method,p_binary,p_data) {
+	var _g = this;
+	haxor.net.HTTPRequestTask.call(this,p_url,p_method,p_binary,p_data);
+	this.request = new XMLHttpRequest();
+	if(this.request.withCredentials) this.request.withCredentials = false;
+	if(($_=this.request,$bind($_,$_.overrideMimeType)) != null) this.request.overrideMimeType(p_binary?"application/octet-stream":"text/plain");
+	this.request.onprogress = function(e) {
+		_g.bytesLoaded = e.loaded;
+		_g.bytesTotal = e.total;
+		_g.set_progress((e.total <= 0?0:e.loaded / (e.total + 5)) * 0.999);
+	};
+	this.request.onload = function(e1) {
+		_g.set_progress(1.0);
+	};
+	this.request.onerror = function(e2) {
+		_g.request = null;
+		_g.set_progress(1.0);
+		_g.error = e2.message;
+		_g.OnError();
+	};
+	this.request.open(this.method,this.url,true);
+};
+$hxClasses["haxor.platform.html.net.HTTPRequest"] = haxor.platform.html.net.HTTPRequest;
+haxor.platform.html.net.HTTPRequest.__name__ = ["haxor","platform","html","net","HTTPRequest"];
+haxor.platform.html.net.HTTPRequest.__super__ = haxor.net.HTTPRequestTask;
+haxor.platform.html.net.HTTPRequest.prototype = $extend(haxor.net.HTTPRequestTask.prototype,{
+	OnStart: function() {
+		if(this.data == null) this.request.send(); else this.request.send(this.data);
+	}
+	,__class__: haxor.platform.html.net.HTTPRequest
+});
+haxor.platform.html.net.HTTPLoader = function(p_url,p_binary,p_callback) {
+	haxor.platform.html.net.HTTPRequest.call(this,p_url,"get",p_binary);
+	this.callback = p_callback;
+};
+$hxClasses["haxor.platform.html.net.HTTPLoader"] = haxor.platform.html.net.HTTPLoader;
+haxor.platform.html.net.HTTPLoader.__name__ = ["haxor","platform","html","net","HTTPLoader"];
+haxor.platform.html.net.HTTPLoader.__super__ = haxor.platform.html.net.HTTPRequest;
+haxor.platform.html.net.HTTPLoader.prototype = $extend(haxor.platform.html.net.HTTPRequest.prototype,{
+	OnStart: function() {
+		haxor.platform.html.net.HTTPRequest.prototype.OnStart.call(this);
+		if(this.callback != null) this.callback(null,0.0);
+	}
+	,OnComplete: function() {
+		if(this.callback == null) return;
+		if(this.request == null) {
+			this.callback(null,1.0);
+			return;
+		}
+		this.response = this.request.response;
+		if(this.binary) this.callback(this.request.response,1.0); else this.callback(this.request.responseText,1.0);
+	}
+	,__class__: haxor.platform.html.net.HTTPLoader
+});
+haxor.platform.html.net.BitmapLoader = function(p_url,p_callback) {
+	haxor.platform.html.net.HTTPLoader.call(this,p_url,true,$bind(this,this.OnBufferCallback));
+	this.m_bitmap_callback = p_callback;
+	this.request.responseType = "blob";
+};
+$hxClasses["haxor.platform.html.net.BitmapLoader"] = haxor.platform.html.net.BitmapLoader;
+haxor.platform.html.net.BitmapLoader.__name__ = ["haxor","platform","html","net","BitmapLoader"];
+haxor.platform.html.net.BitmapLoader.__super__ = haxor.platform.html.net.HTTPLoader;
+haxor.platform.html.net.BitmapLoader.prototype = $extend(haxor.platform.html.net.HTTPLoader.prototype,{
+	OnBufferCallback: function(p_data,p_progress) {
+		var _g = this;
+		if(p_progress < 1.0) {
+			if(this.m_bitmap_callback != null) this.m_bitmap_callback(null,this.m_progress);
+		} else {
+			if(p_data == null) return;
+			var img = new Image();
+			img.onload = function(e) {
+				var g;
+				var _this;
+				var _this1 = window.document;
+				_this = _this1.createElement("canvas");
+				g = _this.getContext("2d");
+				g.canvas.width = img.width;
+				g.canvas.height = img.height;
+				g.scale(1.0,-1.0);
+				g.drawImage(img,0,-img.height);
+				var data = g.getImageData(0,0,g.canvas.width,g.canvas.height);
+				var w = data.width;
+				var h = data.height;
+				var cc = data.data.byteLength / (w * h) | 0;
+				var fmt = haxor.core.PixelFormat.RGBA8;
+				switch(cc) {
+				case 1:
+					fmt = haxor.core.PixelFormat.Alpha8;
+					break;
+				case 3:
+					fmt = haxor.core.PixelFormat.RGB8;
+					break;
+				}
+				var b = new haxor.graphics.texture.Bitmap(w,h,fmt);
+				b.get_buffer().m_buffer.set(data.data);
+				if(_g.m_bitmap_callback != null) _g.m_bitmap_callback(b,1.0);
+			};
+			img.src = URL.createObjectURL(this.request.response);
+		}
+	}
+	,OnError: function() {
+		if(this.m_bitmap_callback != null) this.m_bitmap_callback(null,1.0);
+	}
+	,__class__: haxor.platform.html.net.BitmapLoader
+});
+haxor.net.Texture2DLoader = function(p_url,p_apply,p_callback) {
+	haxor.platform.html.net.BitmapLoader.call(this,p_url,$bind(this,this.OnBitmapCallback));
+	this.m_t2d_callback = p_callback;
+	this.m_apply = p_apply;
+};
+$hxClasses["haxor.net.Texture2DLoader"] = haxor.net.Texture2DLoader;
+haxor.net.Texture2DLoader.__name__ = ["haxor","net","Texture2DLoader"];
+haxor.net.Texture2DLoader.__super__ = haxor.platform.html.net.BitmapLoader;
+haxor.net.Texture2DLoader.prototype = $extend(haxor.platform.html.net.BitmapLoader.prototype,{
+	OnBitmapCallback: function(p_data,p_progress) {
+		var _g = this;
+		if(this.m_progress < 1.0) {
+			if(this.m_t2d_callback != null) this.m_t2d_callback(null,this.m_progress);
+		} else {
+			if(p_data == null) return;
+			haxor.thread.Activity.RunOnce(function() {
+				var t = haxor.graphics.texture.Texture2D.FromBitmap(p_data,_g.m_apply);
+				_g.m_t2d_callback(t,1.0);
+			},false,true);
+		}
+	}
+	,OnError: function() {
+		haxor.platform.html.net.BitmapLoader.prototype.OnError.call(this);
+		if(this.m_t2d_callback != null) this.m_bitmap_callback(null,1.0);
+	}
+	,__class__: haxor.net.Texture2DLoader
+});
+haxor.net.Web = function() { };
+$hxClasses["haxor.net.Web"] = haxor.net.Web;
+haxor.net.Web.__name__ = ["haxor","net","Web"];
+haxor.net.Web.Load = function(p_url,p_callback) {
+	var ld = new haxor.platform.html.net.HTTPLoader(p_url,false,p_callback);
+};
+haxor.net.Web.LoadImg = function(p_url,p_callback) {
+	var ld = new haxor.platform.html.net.BitmapLoader(p_url,p_callback);
+};
+haxor.net.Web.LoadTexture2D = function(p_url,p_apply,p_callback) {
+	var ld = new haxor.net.Texture2DLoader(p_url,p_apply,p_callback);
+};
+haxor.net.Web.LoadCollada = function(p_url,p_callback) {
+	haxor.net.Web.Load(p_url,function(d,p) {
+		if(p < 1.0) p_callback(null,p); else p_callback(d == null?null:new haxor.io.file.ColladaFile(p_url,d),1.0);
+	});
+};
+haxor.net.Web.LoadShader = function(p_url,p_callback) {
+	haxor.net.Web.Load(p_url,function(d,p) {
+		if(p < 1.0) p_callback(null,p); else p_callback(d == null?null:new haxor.graphics.material.Shader(d),1.0);
+	});
+};
 haxor.platform.html.Entry = function() { };
 $hxClasses["haxor.platform.html.Entry"] = haxor.platform.html.Entry;
 haxor.platform.html.Entry.__name__ = ["haxor","platform","html","Entry"];
@@ -11371,95 +13455,6 @@ haxor.platform.html.input.HTMLInputHandler.prototype = $extend(haxor.input.Input
 	}
 	,__class__: haxor.platform.html.input.HTMLInputHandler
 });
-haxor.thread = {};
-haxor.thread.Activity = function(p_callback,p_threaded,p_graphics_context) {
-	if(p_graphics_context == null) p_graphics_context = false;
-	if(p_threaded == null) p_threaded = false;
-	haxor.core.Resource.call(this);
-	if(p_callback == null) return;
-	this.m_time_start = haxor.core.Time.m_elapsed;
-	this.m_elapsed = 0.0;
-	this.m_callback = p_callback;
-	this.m_cancelled = false;
-	p_threaded = false;
-	if(p_graphics_context) p_threaded = false;
-	if(!p_threaded) {
-		if(p_graphics_context) haxor.context.EngineContext.render.Add(this); else haxor.context.EngineContext.update.Add(this);
-	} else {
-	}
-};
-$hxClasses["haxor.thread.Activity"] = haxor.thread.Activity;
-haxor.thread.Activity.__name__ = ["haxor","thread","Activity"];
-haxor.thread.Activity.__interfaces__ = [haxor.core.IRenderable,haxor.core.IUpdateable];
-haxor.thread.Activity.Iterate = function(p_offset,p_length,p_callback,p_step,p_threaded,p_graphics_context) {
-	if(p_graphics_context == null) p_graphics_context = false;
-	if(p_threaded == null) p_threaded = false;
-	if(p_step == null) p_step = 1;
-	var it = p_offset;
-	return new haxor.thread.Activity(function(t) {
-		var finished = false;
-		var _g = 0;
-		while(_g < p_step) {
-			var i = _g++;
-			if(it >= p_length) return false;
-			if(!p_callback(it)) {
-				finished = true;
-				break;
-			}
-			it++;
-		}
-		return !finished;
-	},p_threaded,p_graphics_context);
-};
-haxor.thread.Activity.Delay = function(p_time,p_callback,p_threaded,p_graphics_context) {
-	if(p_graphics_context == null) p_graphics_context = false;
-	if(p_threaded == null) p_threaded = false;
-	return new haxor.thread.Activity(function(t) {
-		if(t >= p_time) {
-			p_callback();
-			return false;
-		}
-		return true;
-	},p_threaded,p_graphics_context);
-};
-haxor.thread.Activity.Run = function(p_callback,p_threaded,p_graphics_context) {
-	if(p_graphics_context == null) p_graphics_context = false;
-	if(p_threaded == null) p_threaded = false;
-	return new haxor.thread.Activity(p_callback,p_threaded,p_graphics_context);
-};
-haxor.thread.Activity.RunOnce = function(p_callback,p_threaded,p_graphics_context) {
-	if(p_graphics_context == null) p_graphics_context = false;
-	if(p_threaded == null) p_threaded = false;
-	return new haxor.thread.Activity(function(t) {
-		p_callback();
-		return false;
-	},p_threaded,p_graphics_context);
-};
-haxor.thread.Activity.__super__ = haxor.core.Resource;
-haxor.thread.Activity.prototype = $extend(haxor.core.Resource.prototype,{
-	get_elapsed: function() {
-		return this.m_elapsed;
-	}
-	,Cancel: function() {
-		this.m_cancelled = true;
-	}
-	,OnUpdate: function() {
-		this.OnRun();
-	}
-	,OnRender: function() {
-		this.OnRun();
-	}
-	,OnRun: function() {
-		if(this.m_cancelled) {
-			haxor.core.Resource.Destroy(this);
-			return;
-		}
-		this.m_elapsed = haxor.core.Time.m_elapsed - this.m_time_start;
-		if(!this.m_callback(this.m_elapsed)) haxor.core.Resource.Destroy(this);
-	}
-	,__class__: haxor.thread.Activity
-	,__properties__: $extend(haxor.core.Resource.prototype.__properties__,{get_elapsed:"get_elapsed"})
-});
 var js = {};
 js.Boot = function() { };
 $hxClasses["js.Boot"] = js.Boot;
@@ -11611,6 +13606,8 @@ tldc.client.TLDC.prototype = $extend(haxor.core.Application.prototype,{
 		haxor.core.Console.Log("TLDC> Init",1);
 		this.view = new tldc.client.view.TLDCView();
 		this.controller = new tldc.client.controller.TLDCController();
+		this.model = new tldc.client.model.TLDCModel();
+		this.controller.Run();
 	}
 	,__class__: tldc.client.TLDC
 });
@@ -11632,8 +13629,6 @@ tldc.client.controller.TLDCController = function() {
 	tldc.client.TLDCResource.call(this);
 	haxor.core.Console.Log("TLDCController> Init",1);
 	window.onhashchange = $bind(this,this.OnHashChange);
-	this.get_app().view.header.Show();
-	haxe.Timer.delay($bind(this,this.Run),200);
 };
 $hxClasses["tldc.client.controller.TLDCController"] = tldc.client.controller.TLDCController;
 tldc.client.controller.TLDCController.__name__ = ["tldc","client","controller","TLDCController"];
@@ -11641,15 +13636,90 @@ tldc.client.controller.TLDCController.__super__ = tldc.client.TLDCResource;
 tldc.client.controller.TLDCController.prototype = $extend(tldc.client.TLDCResource.prototype,{
 	Run: function() {
 		haxor.core.Console.Log("TLDCController> Run [" + window.location.hash + "]",1);
-		this.ApplyHash(window.location.hash);
+		this.get_app().model.Load();
 	}
 	,ApplyHash: function(p_hash) {
 		if(p_hash == "") return;
+	}
+	,OnDataComplete: function() {
+		this.get_app().view.loader.Remove(0.8);
+		this.get_app().view.header.Show(1.8);
+		this.get_app().view.section.Show(1.8);
+		this.ApplyHash(window.location.hash);
+	}
+	,OnDataLoad: function(p_data,p_progress) {
+		this.get_app().view.loader.bar.get_layout().set_width(p_progress);
+		if(p_progress >= 1.0) this.OnDataComplete();
 	}
 	,OnHashChange: function(p_event) {
 		this.ApplyHash(window.location.hash);
 	}
 	,__class__: tldc.client.controller.TLDCController
+});
+tldc.client.model = {};
+tldc.client.model.Donation = function(p_from,p_to,p_party,p_state,p_value) {
+	this.from = p_from;
+	this.to = p_to;
+	this.party = p_party;
+	this.state = p_state;
+	this.value = p_value;
+};
+$hxClasses["tldc.client.model.Donation"] = tldc.client.model.Donation;
+tldc.client.model.Donation.__name__ = ["tldc","client","model","Donation"];
+tldc.client.model.Donation.prototype = {
+	__class__: tldc.client.model.Donation
+};
+tldc.client.model.TLDCModel = function() {
+	tldc.client.TLDCResource.call(this);
+};
+$hxClasses["tldc.client.model.TLDCModel"] = tldc.client.model.TLDCModel;
+tldc.client.model.TLDCModel.__name__ = ["tldc","client","model","TLDCModel"];
+tldc.client.model.TLDCModel.__super__ = tldc.client.TLDCResource;
+tldc.client.model.TLDCModel.prototype = $extend(tldc.client.TLDCResource.prototype,{
+	Load: function() {
+		haxor.core.Console.Log("TLDCModel> Load data.",1);
+		haxor.net.Web.Load("data/data-tree-2014.json",$bind(this,this.OnDataLoad));
+	}
+	,ProcessNode: function(p_node) {
+		if(p_node.name == null) return;
+		var n = p_node.name;
+		var o = n.toLowerCase();
+		if(p_node.value != null) {
+			var v = p_node.value;
+			this.total += v;
+			var d = new tldc.client.model.Donation(this.m_current_origin,n,"","",v);
+			this.donations.push(d);
+		} else {
+			if(o.indexOf("fundo") >= 0) this.m_current_origin = "fundo-partidario";
+			if(o.indexOf("empresas") >= 0) this.m_current_origin = "empresa";
+			if(o.indexOf("pessoa") >= 0) this.m_current_origin = "pessoa";
+		}
+	}
+	,OnDataLoad: function(p_data,p_progress) {
+		if(p_data != null) {
+			this.tree = JSON.parse(p_data);
+			this.Parse();
+		}
+		this.get_app().controller.OnDataLoad(p_data,p_progress);
+	}
+	,Parse: function() {
+		console.log(this.tree);
+		this.total = 0;
+		this.donations = [];
+		this.ParseTree(this.tree);
+		console.log("R$ " + this.total);
+		console.log(this.donations);
+	}
+	,ParseTree: function(p_node) {
+		this.ProcessNode(p_node);
+		var _g1 = 0;
+		var _g = p_node.children.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			console.log(p_node.children[i]);
+		}
+	}
+	,__class__: tldc.client.model.TLDCModel
 });
 tldc.client.view = {};
 tldc.client.view.HeaderView = function() {
@@ -11660,10 +13730,30 @@ $hxClasses["tldc.client.view.HeaderView"] = tldc.client.view.HeaderView;
 tldc.client.view.HeaderView.__name__ = ["tldc","client","view","HeaderView"];
 tldc.client.view.HeaderView.__super__ = tldc.client.TLDCResource;
 tldc.client.view.HeaderView.prototype = $extend(tldc.client.TLDCResource.prototype,{
-	Show: function() {
-		haxor.core.Tween.Add(this.container.get_layout(),"py",0.0,0.5,1.0,haxor.math.Cubic.Out);
+	Show: function(p_delay) {
+		if(p_delay == null) p_delay = 0.0;
+		haxor.core.Tween.Add(this.container.get_layout(),"py",0.0,0.5,p_delay,haxor.math.Cubic.Out);
 	}
 	,__class__: tldc.client.view.HeaderView
+});
+tldc.client.view.LoaderView = function() {
+	tldc.client.TLDCResource.call(this);
+	this.bar = this.get_app().get_stage().Find("content.loader.bar");
+	this.container = this.get_app().get_stage().Find("content.loader");
+};
+$hxClasses["tldc.client.view.LoaderView"] = tldc.client.view.LoaderView;
+tldc.client.view.LoaderView.__name__ = ["tldc","client","view","LoaderView"];
+tldc.client.view.LoaderView.__super__ = tldc.client.TLDCResource;
+tldc.client.view.LoaderView.prototype = $extend(tldc.client.TLDCResource.prototype,{
+	Remove: function(p_delay) {
+		if(p_delay == null) p_delay = 0.0;
+		haxor.core.Tween.Add(this.container,"alpha",0.0,0.5,p_delay,haxor.math.Cubic.Out);
+		haxor.thread.Activity.Delay(1.6,$bind(this,this.RemoveFromUI));
+	}
+	,RemoveFromUI: function() {
+		this.container.get_parent().RemoveChild(this.container);
+	}
+	,__class__: tldc.client.view.LoaderView
 });
 tldc.client.view.SectionView = function() {
 	var _g = this;
@@ -11680,7 +13770,11 @@ $hxClasses["tldc.client.view.SectionView"] = tldc.client.view.SectionView;
 tldc.client.view.SectionView.__name__ = ["tldc","client","view","SectionView"];
 tldc.client.view.SectionView.__super__ = tldc.client.TLDCResource;
 tldc.client.view.SectionView.prototype = $extend(tldc.client.TLDCResource.prototype,{
-	ChangeSection: function(p_name) {
+	Show: function(p_delay) {
+		if(p_delay == null) p_delay = 0.0;
+		haxor.core.Tween.Add(this.container,"alpha",1.0,0.5,p_delay,haxor.math.Cubic.Out);
+	}
+	,ChangeSection: function(p_name) {
 		var s = this.container.GetChildByName(p_name);
 		if(s == null) {
 			haxor.core.Console.Log("SectionView> Section [" + p_name + "] not found!",1);
@@ -11696,6 +13790,7 @@ tldc.client.view.TLDCView = function() {
 	haxor.core.Console.Log("TLDCView> Init",1);
 	this.header = new tldc.client.view.HeaderView();
 	this.section = new tldc.client.view.SectionView();
+	this.loader = new tldc.client.view.LoaderView();
 };
 $hxClasses["tldc.client.view.TLDCView"] = tldc.client.view.TLDCView;
 tldc.client.view.TLDCView.__name__ = ["tldc","client","view","TLDCView"];
@@ -12379,5 +14474,6 @@ haxor.math.Mathf.Long2Float = 0.00000000023283064365386962890625;
 haxor.math.Mathf.Float2Byte = 255.0;
 haxor.math.Mathf.Float2Short = 65536.0;
 haxor.math.Mathf.Float2Long = 4294967296.0;
+haxor.net.Web.root = "";
 tldc.client.TLDC.main();
 })();

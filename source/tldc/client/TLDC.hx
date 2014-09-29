@@ -4,6 +4,7 @@ import haxor.core.Console;
 import haxor.dom.DOMStage;
 import haxor.platform.html.Entry;
 import tldc.client.controller.TLDCController;
+import tldc.client.model.TLDCModel;
 import tldc.client.view.TLDCView;
 
 
@@ -27,6 +28,11 @@ class TLDC extends Application
 	public var controller : TLDCController;
 	
 	/**
+	 * Container for all models.
+	 */
+	public var model : TLDCModel;
+	
+	/**
 	 * Initializes the application.
 	 */
 	override public function Initialize():Void 
@@ -35,7 +41,9 @@ class TLDC extends Application
 		
 		view 		= new TLDCView();
 		controller  = new TLDCController();
+		model		= new TLDCModel();
 		
+		controller.Run();
 	}
 	
 }
