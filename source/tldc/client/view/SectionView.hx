@@ -7,6 +7,8 @@ import haxor.input.KeyCode;
 import haxor.math.Easing.Cubic;
 import haxor.thread.Activity;
 import tldc.client.TLDCResource;
+import tldc.client.view.section.RegionSection;
+import tldc.client.view.section.TLDCSection;
 
 /**
  * Class that handles the site sections.
@@ -19,11 +21,21 @@ class SectionView extends TLDCResource
 	 * Reference to the UI container.
 	 */
 	public var container : Container;
+	
+	/**
+	 * List of sections.
+	 */
+	public var sections : Array<TLDCSection>;
 
 	/**
 	 * Current section.
 	 */
-	public var current : String;
+	public var current : TLDCSection;
+	
+	/**
+	 * Reference to the region section.
+	 */
+	public var region : RegionSection;
 	
 	/**
 	 * CTOR.
@@ -31,16 +43,15 @@ class SectionView extends TLDCResource
 	public function new() 
 	{
 		super();
-		container = cast app.stage.Find("content.section");
-		current = "";
-		Activity.Run(function(t:Float):Bool
-		{
-			if (Input.Down(KeyCode.D1)) ChangeSection("A");
-			if (Input.Down(KeyCode.D2)) ChangeSection("B");
-			if (Input.Down(KeyCode.D3)) ChangeSection("C");
-			return true;
-		});
+		container = cast app.stage.Find("content.section");		
+		sections = [];
+		current = null;
 		
+		var c : Container;
+		var s : TLDCSection;
+		
+		c = cast container.Find("region");
+		if (c != null) { s = new RegionSection(c); sections.push(s); current = s; region = cast s; }
 		
 	}
 	
@@ -53,21 +64,33 @@ class SectionView extends TLDCResource
 	}
 	
 	/**
+	 * Returns the section by name.
+	 * @param	p_name
+	 * @return
+	 */
+	public function GetSection(p_name:String):TLDCSection
+	{
+		for (i in 0...sections.length) if (sections[i].name == p_name) return sections[i];
+		return null;
+	}
+	
+	/**
 	 * Changes the current section.
 	 * @param	p_name
 	 */
 	public function ChangeSection(p_name : String):Void
 	{
-		if (p_name == current) return;
-		var s : Container =  cast container.GetChildByName(p_name);
+		if (current != null) if (p_name == current.name) return;
+		var s : TLDCSection = GetSection(p_name);
+				
 		if (s == null)
 		{
 			Console.Log("SectionView> Section [" + p_name+"] not found!", 1);
 			return;
-		}
-		current = p_name;
-		var v : Float = s.layout.x;				
-		Tween.Add(container.layout, "x", -v, 0.5, 0.0, Cubic.Out);
+		}		
+		current = s;
+		var v : Float = s.container.layout.x;				
+		Tween.Add(s.container.layout, "x", -v, 0.5, 0.0, Cubic.Out);
 		Activity.Delay(0.6, app.controller.OnSectionChange);
 	}
 	

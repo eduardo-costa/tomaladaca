@@ -115,6 +115,19 @@ class TLDCModel extends TLDCResource
 	private var m_current_party : String;
 	
 	/**
+	 * Overall progress of the file loading.
+	 */
+	public var progress(get_progress, never):Float;
+	private function get_progress():Float
+	{ 
+		return (m_p0 + m_p1) * 0.5; 
+	}
+	
+	
+	private var m_p0 : Float;
+	private var m_p1 : Float;
+	
+	/**
 	 * CTOR.
 	 */
 	public function new() 
@@ -129,7 +142,10 @@ class TLDCModel extends TLDCResource
 	{
 		Console.Log("TLDCModel> Load data.", 1);
 		filter = new TLDCFilter();
+		m_p0 = 0;
+		m_p1 = 0;
 		Web.Load("data/data-tree-2014.json", OnDataLoad);
+		Web.Load("image/map.xml", OnMapLoad);
 	}
 	
 	/**
@@ -188,6 +204,17 @@ class TLDCModel extends TLDCResource
 	}
 	
 	/**
+	 * Callback to handle the load of the SVG map.
+	 * @param	p_data
+	 * @param	p_progress
+	 */
+	private function OnMapLoad(p_data : String, p_progress:Float32):Void
+	{
+		m_p1 = p_progress;
+		app.controller.OnMapLoad(p_data, progress);
+	}
+	
+	/**
 	 * Callback to handle the data load process.
 	 * @param	p_data
 	 * @param	p_progress
@@ -200,7 +227,8 @@ class TLDCModel extends TLDCResource
 			TraverseTreeData(tree,null,AdjustTree);
 			Parse();
 		}		
-		app.controller.OnDataLoad(p_data, p_progress);
+		m_p0 = p_progress;
+		app.controller.OnDataLoad(p_data, progress);
 	}
 	
 	/**

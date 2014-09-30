@@ -1,5 +1,5 @@
 (function () { "use strict";
-var $hxClasses = {},$estr = function() { return js.Boot.__string_rec(this,''); };
+var $hxClasses = {};
 function $extend(from, fields) {
 	function Inherit() {} Inherit.prototype = from; var proto = new Inherit();
 	for (var name in fields) proto[name] = fields[name];
@@ -384,11 +384,34 @@ Xml.prototype = {
 	,__properties__: {set_nodeValue:"set_nodeValue",get_nodeValue:"get_nodeValue",set_nodeName:"set_nodeName",get_nodeName:"get_nodeName"}
 };
 var haxe = {};
-haxe.Timer = function() { };
+haxe.Timer = function(time_ms) {
+	var me = this;
+	this.id = setInterval(function() {
+		me.run();
+	},time_ms);
+};
 $hxClasses["haxe.Timer"] = haxe.Timer;
 haxe.Timer.__name__ = ["haxe","Timer"];
+haxe.Timer.delay = function(f,time_ms) {
+	var t = new haxe.Timer(time_ms);
+	t.run = function() {
+		t.stop();
+		f();
+	};
+	return t;
+};
 haxe.Timer.stamp = function() {
 	return new Date().getTime() / 1000;
+};
+haxe.Timer.prototype = {
+	stop: function() {
+		if(this.id == null) return;
+		clearInterval(this.id);
+		this.id = null;
+	}
+	,run: function() {
+	}
+	,__class__: haxe.Timer
 };
 haxe.io = {};
 haxe.io.Bytes = function(length,b) {
@@ -655,15 +678,12 @@ haxe.io.Eof.prototype = {
 };
 haxe.io.Error = { __ename__ : true, __constructs__ : ["Blocked","Overflow","OutsideBounds","Custom"] };
 haxe.io.Error.Blocked = ["Blocked",0];
-haxe.io.Error.Blocked.toString = $estr;
 haxe.io.Error.Blocked.__enum__ = haxe.io.Error;
 haxe.io.Error.Overflow = ["Overflow",1];
-haxe.io.Error.Overflow.toString = $estr;
 haxe.io.Error.Overflow.__enum__ = haxe.io.Error;
 haxe.io.Error.OutsideBounds = ["OutsideBounds",2];
-haxe.io.Error.OutsideBounds.toString = $estr;
 haxe.io.Error.OutsideBounds.__enum__ = haxe.io.Error;
-haxe.io.Error.Custom = function(e) { var $x = ["Custom",3,e]; $x.__enum__ = haxe.io.Error; $x.toString = $estr; return $x; };
+haxe.io.Error.Custom = function(e) { var $x = ["Custom",3,e]; $x.__enum__ = haxe.io.Error; return $x; };
 haxe.xml = {};
 haxe.xml.Parser = function() { };
 $hxClasses["haxe.xml.Parser"] = haxe.xml.Parser;
@@ -3921,41 +3941,29 @@ haxor.core.Application.prototype = $extend(haxor.platform.html.HTMLApplication.p
 });
 haxor.core.Platform = { __ename__ : true, __constructs__ : ["Unknown","Windows","Linux","Android","MacOS","iOS","HTML","NodeJS"] };
 haxor.core.Platform.Unknown = ["Unknown",0];
-haxor.core.Platform.Unknown.toString = $estr;
 haxor.core.Platform.Unknown.__enum__ = haxor.core.Platform;
 haxor.core.Platform.Windows = ["Windows",1];
-haxor.core.Platform.Windows.toString = $estr;
 haxor.core.Platform.Windows.__enum__ = haxor.core.Platform;
 haxor.core.Platform.Linux = ["Linux",2];
-haxor.core.Platform.Linux.toString = $estr;
 haxor.core.Platform.Linux.__enum__ = haxor.core.Platform;
 haxor.core.Platform.Android = ["Android",3];
-haxor.core.Platform.Android.toString = $estr;
 haxor.core.Platform.Android.__enum__ = haxor.core.Platform;
 haxor.core.Platform.MacOS = ["MacOS",4];
-haxor.core.Platform.MacOS.toString = $estr;
 haxor.core.Platform.MacOS.__enum__ = haxor.core.Platform;
 haxor.core.Platform.iOS = ["iOS",5];
-haxor.core.Platform.iOS.toString = $estr;
 haxor.core.Platform.iOS.__enum__ = haxor.core.Platform;
 haxor.core.Platform.HTML = ["HTML",6];
-haxor.core.Platform.HTML.toString = $estr;
 haxor.core.Platform.HTML.__enum__ = haxor.core.Platform;
 haxor.core.Platform.NodeJS = ["NodeJS",7];
-haxor.core.Platform.NodeJS.toString = $estr;
 haxor.core.Platform.NodeJS.__enum__ = haxor.core.Platform;
 haxor.core.ApplicationProtocol = { __ename__ : true, __constructs__ : ["None","File","HTTP","HTTPS"] };
 haxor.core.ApplicationProtocol.None = ["None",0];
-haxor.core.ApplicationProtocol.None.toString = $estr;
 haxor.core.ApplicationProtocol.None.__enum__ = haxor.core.ApplicationProtocol;
 haxor.core.ApplicationProtocol.File = ["File",1];
-haxor.core.ApplicationProtocol.File.toString = $estr;
 haxor.core.ApplicationProtocol.File.__enum__ = haxor.core.ApplicationProtocol;
 haxor.core.ApplicationProtocol.HTTP = ["HTTP",2];
-haxor.core.ApplicationProtocol.HTTP.toString = $estr;
 haxor.core.ApplicationProtocol.HTTP.__enum__ = haxor.core.ApplicationProtocol;
 haxor.core.ApplicationProtocol.HTTPS = ["HTTPS",3];
-haxor.core.ApplicationProtocol.HTTPS.toString = $estr;
 haxor.core.ApplicationProtocol.HTTPS.__enum__ = haxor.core.ApplicationProtocol;
 haxor.core.Console = function() { };
 $hxClasses["haxor.core.Console"] = haxor.core.Console;
@@ -4051,10 +4059,8 @@ haxor.core.Console.SetStyle = function(p_size,p_color,p_background,p_font) {
 };
 haxor.core.EngineState = { __ename__ : true, __constructs__ : ["Play","Editor"] };
 haxor.core.EngineState.Play = ["Play",0];
-haxor.core.EngineState.Play.toString = $estr;
 haxor.core.EngineState.Play.__enum__ = haxor.core.EngineState;
 haxor.core.EngineState.Editor = ["Editor",1];
-haxor.core.EngineState.Editor.toString = $estr;
 haxor.core.EngineState.Editor.__enum__ = haxor.core.EngineState;
 haxor.core.Engine = function() { };
 $hxClasses["haxor.core.Engine"] = haxor.core.Engine;
@@ -4268,94 +4274,67 @@ $hxClasses["haxor.core.DepthTest"] = haxor.core.DepthTest;
 haxor.core.DepthTest.__name__ = ["haxor","core","DepthTest"];
 haxor.core.PixelFormat = { __ename__ : true, __constructs__ : ["Alpha8","Luminance","RGB8","RGBA8","Half","Half3","Half4","Float","Float3","Float4","Depth"] };
 haxor.core.PixelFormat.Alpha8 = ["Alpha8",0];
-haxor.core.PixelFormat.Alpha8.toString = $estr;
 haxor.core.PixelFormat.Alpha8.__enum__ = haxor.core.PixelFormat;
 haxor.core.PixelFormat.Luminance = ["Luminance",1];
-haxor.core.PixelFormat.Luminance.toString = $estr;
 haxor.core.PixelFormat.Luminance.__enum__ = haxor.core.PixelFormat;
 haxor.core.PixelFormat.RGB8 = ["RGB8",2];
-haxor.core.PixelFormat.RGB8.toString = $estr;
 haxor.core.PixelFormat.RGB8.__enum__ = haxor.core.PixelFormat;
 haxor.core.PixelFormat.RGBA8 = ["RGBA8",3];
-haxor.core.PixelFormat.RGBA8.toString = $estr;
 haxor.core.PixelFormat.RGBA8.__enum__ = haxor.core.PixelFormat;
 haxor.core.PixelFormat.Half = ["Half",4];
-haxor.core.PixelFormat.Half.toString = $estr;
 haxor.core.PixelFormat.Half.__enum__ = haxor.core.PixelFormat;
 haxor.core.PixelFormat.Half3 = ["Half3",5];
-haxor.core.PixelFormat.Half3.toString = $estr;
 haxor.core.PixelFormat.Half3.__enum__ = haxor.core.PixelFormat;
 haxor.core.PixelFormat.Half4 = ["Half4",6];
-haxor.core.PixelFormat.Half4.toString = $estr;
 haxor.core.PixelFormat.Half4.__enum__ = haxor.core.PixelFormat;
 haxor.core.PixelFormat.Float = ["Float",7];
-haxor.core.PixelFormat.Float.toString = $estr;
 haxor.core.PixelFormat.Float.__enum__ = haxor.core.PixelFormat;
 haxor.core.PixelFormat.Float3 = ["Float3",8];
-haxor.core.PixelFormat.Float3.toString = $estr;
 haxor.core.PixelFormat.Float3.__enum__ = haxor.core.PixelFormat;
 haxor.core.PixelFormat.Float4 = ["Float4",9];
-haxor.core.PixelFormat.Float4.toString = $estr;
 haxor.core.PixelFormat.Float4.__enum__ = haxor.core.PixelFormat;
 haxor.core.PixelFormat.Depth = ["Depth",10];
-haxor.core.PixelFormat.Depth.toString = $estr;
 haxor.core.PixelFormat.Depth.__enum__ = haxor.core.PixelFormat;
 haxor.core.TextureFilter = { __ename__ : true, __constructs__ : ["Nearest","Linear","NearestMipmapNearest","NearestMipmapLinear","LinearMipmapNearest","LinearMipmapLinear","Trilinear"] };
 haxor.core.TextureFilter.Nearest = ["Nearest",0];
-haxor.core.TextureFilter.Nearest.toString = $estr;
 haxor.core.TextureFilter.Nearest.__enum__ = haxor.core.TextureFilter;
 haxor.core.TextureFilter.Linear = ["Linear",1];
-haxor.core.TextureFilter.Linear.toString = $estr;
 haxor.core.TextureFilter.Linear.__enum__ = haxor.core.TextureFilter;
 haxor.core.TextureFilter.NearestMipmapNearest = ["NearestMipmapNearest",2];
-haxor.core.TextureFilter.NearestMipmapNearest.toString = $estr;
 haxor.core.TextureFilter.NearestMipmapNearest.__enum__ = haxor.core.TextureFilter;
 haxor.core.TextureFilter.NearestMipmapLinear = ["NearestMipmapLinear",3];
-haxor.core.TextureFilter.NearestMipmapLinear.toString = $estr;
 haxor.core.TextureFilter.NearestMipmapLinear.__enum__ = haxor.core.TextureFilter;
 haxor.core.TextureFilter.LinearMipmapNearest = ["LinearMipmapNearest",4];
-haxor.core.TextureFilter.LinearMipmapNearest.toString = $estr;
 haxor.core.TextureFilter.LinearMipmapNearest.__enum__ = haxor.core.TextureFilter;
 haxor.core.TextureFilter.LinearMipmapLinear = ["LinearMipmapLinear",5];
-haxor.core.TextureFilter.LinearMipmapLinear.toString = $estr;
 haxor.core.TextureFilter.LinearMipmapLinear.__enum__ = haxor.core.TextureFilter;
 haxor.core.TextureFilter.Trilinear = ["Trilinear",6];
-haxor.core.TextureFilter.Trilinear.toString = $estr;
 haxor.core.TextureFilter.Trilinear.__enum__ = haxor.core.TextureFilter;
 haxor.core.TextureWrap = function() { };
 $hxClasses["haxor.core.TextureWrap"] = haxor.core.TextureWrap;
 haxor.core.TextureWrap.__name__ = ["haxor","core","TextureWrap"];
 haxor.core.TextureType = { __ename__ : true, __constructs__ : ["None","Texture2D","TextureCube","RenderTexture","Compute"] };
 haxor.core.TextureType.None = ["None",0];
-haxor.core.TextureType.None.toString = $estr;
 haxor.core.TextureType.None.__enum__ = haxor.core.TextureType;
 haxor.core.TextureType.Texture2D = ["Texture2D",1];
-haxor.core.TextureType.Texture2D.toString = $estr;
 haxor.core.TextureType.Texture2D.__enum__ = haxor.core.TextureType;
 haxor.core.TextureType.TextureCube = ["TextureCube",2];
-haxor.core.TextureType.TextureCube.toString = $estr;
 haxor.core.TextureType.TextureCube.__enum__ = haxor.core.TextureType;
 haxor.core.TextureType.RenderTexture = ["RenderTexture",3];
-haxor.core.TextureType.RenderTexture.toString = $estr;
 haxor.core.TextureType.RenderTexture.__enum__ = haxor.core.TextureType;
 haxor.core.TextureType.Compute = ["Compute",4];
-haxor.core.TextureType.Compute.toString = $estr;
 haxor.core.TextureType.Compute.__enum__ = haxor.core.TextureType;
 haxor.core.ClearFlag = function() { };
 $hxClasses["haxor.core.ClearFlag"] = haxor.core.ClearFlag;
 haxor.core.ClearFlag.__name__ = ["haxor","core","ClearFlag"];
 haxor.core.InputState = { __ename__ : true, __constructs__ : ["None","Down","Up","Hold"] };
 haxor.core.InputState.None = ["None",0];
-haxor.core.InputState.None.toString = $estr;
 haxor.core.InputState.None.__enum__ = haxor.core.InputState;
 haxor.core.InputState.Down = ["Down",1];
-haxor.core.InputState.Down.toString = $estr;
 haxor.core.InputState.Down.__enum__ = haxor.core.InputState;
 haxor.core.InputState.Up = ["Up",2];
-haxor.core.InputState.Up.toString = $estr;
 haxor.core.InputState.Up.__enum__ = haxor.core.InputState;
 haxor.core.InputState.Hold = ["Hold",3];
-haxor.core.InputState.Hold.toString = $estr;
 haxor.core.InputState.Hold.__enum__ = haxor.core.InputState;
 haxor.core.IRenderable = function() { };
 $hxClasses["haxor.core.IRenderable"] = haxor.core.IRenderable;
@@ -5346,15 +5325,15 @@ haxor.dom.DOMStage.BuildDOMEntity = function(n,e) {
 					m.set_xMin(n1);
 				}
 				if(mtk.length >= 2) {
-					n1 = Std.parseFloat(mtk[0]);
+					n1 = Std.parseFloat(mtk[1]);
 					m.set_xMax(n1);
 				}
 				if(mtk.length >= 3) {
-					n1 = Std.parseFloat(mtk[0]);
+					n1 = Std.parseFloat(mtk[2]);
 					m.set_yMin(n1);
 				}
 				if(mtk.length >= 4) {
-					n1 = Std.parseFloat(mtk[0]);
+					n1 = Std.parseFloat(mtk[3]);
 					m.set_yMax(n1);
 				}
 			}
@@ -6161,16 +6140,12 @@ haxor.graphics.GL.Focus = function() {
 };
 haxor.graphics.GraphicAPI = { __ename__ : true, __constructs__ : ["None","OpenGL","OpenGLES","WebGL"] };
 haxor.graphics.GraphicAPI.None = ["None",0];
-haxor.graphics.GraphicAPI.None.toString = $estr;
 haxor.graphics.GraphicAPI.None.__enum__ = haxor.graphics.GraphicAPI;
 haxor.graphics.GraphicAPI.OpenGL = ["OpenGL",1];
-haxor.graphics.GraphicAPI.OpenGL.toString = $estr;
 haxor.graphics.GraphicAPI.OpenGL.__enum__ = haxor.graphics.GraphicAPI;
 haxor.graphics.GraphicAPI.OpenGLES = ["OpenGLES",2];
-haxor.graphics.GraphicAPI.OpenGLES.toString = $estr;
 haxor.graphics.GraphicAPI.OpenGLES.__enum__ = haxor.graphics.GraphicAPI;
 haxor.graphics.GraphicAPI.WebGL = ["WebGL",3];
-haxor.graphics.GraphicAPI.WebGL.toString = $estr;
 haxor.graphics.GraphicAPI.WebGL.__enum__ = haxor.graphics.GraphicAPI;
 haxor.graphics.GraphicContext = function(p_application) {
 	this.m_api = haxor.graphics.GraphicAPI.None;
@@ -6671,13 +6646,10 @@ haxor.graphics.Screen.Initialize = function(p_application) {
 };
 haxor.graphics.CursorMode = { __ename__ : true, __constructs__ : ["Show","Hide","Lock"] };
 haxor.graphics.CursorMode.Show = ["Show",0];
-haxor.graphics.CursorMode.Show.toString = $estr;
 haxor.graphics.CursorMode.Show.__enum__ = haxor.graphics.CursorMode;
 haxor.graphics.CursorMode.Hide = ["Hide",1];
-haxor.graphics.CursorMode.Hide.toString = $estr;
 haxor.graphics.CursorMode.Hide.__enum__ = haxor.graphics.CursorMode;
 haxor.graphics.CursorMode.Lock = ["Lock",2];
-haxor.graphics.CursorMode.Lock.toString = $estr;
 haxor.graphics.CursorMode.Lock.__enum__ = haxor.graphics.CursorMode;
 haxor.graphics.material = {};
 haxor.graphics.material.Material = function(p_name) {
@@ -12900,12 +12872,22 @@ haxor.platform.html.Entry.OnWindowLoad = function(p_event) {
 		return;
 	}
 	haxor.core.Console.Log("Haxor> Application [" + app_class_type + "] created successfully!",1);
+	haxor.platform.html.Entry.m_application.m_container = window.document.getElementById(app_container_id);
+	if(haxor.platform.html.Entry.m_application.m_container == null) {
+		haxor.core.Console.Log("Graphics> DOM container not defined id[" + app_container_id + "] using 'body'.");
+		haxor.platform.html.Entry.m_application.m_container = window.document.body;
+	}
+	var cd = haxor.platform.html.Entry.m_application.m_container.style.display;
+	haxor.platform.html.Entry.m_application.m_container.style.display = "none";
 	haxor.graphics.GL.Initialize(haxor.platform.html.Entry.m_application);
 	haxor.graphics.GL.m_gl.Initialize(app_container_id);
 	haxor.graphics.GL.m_gl.CheckExtensions();
 	haxor.core.Console.Log("Haxor> Creating Stage with [" + app_container_id + "]");
 	var stage = new haxor.dom.DOMStage(haxor.platform.html.Entry.m_application.m_container);
 	stage.Parse(haxor.platform.html.Entry.m_application.m_container);
+	haxe.Timer.delay(function() {
+		haxor.platform.html.Entry.m_application.m_container.style.display = cd;
+	},100);
 	haxor.context.EngineContext.Build();
 	haxor.platform.html.Entry.m_input = new haxor.platform.html.input.HTMLInputHandler(app_input_id);
 	haxor.input.Input.m_handler = haxor.platform.html.Entry.m_input;
@@ -13651,7 +13633,7 @@ tldc.client.controller.TLDCController.prototype = $extend(tldc.client.TLDCResour
 		this.path = pl;
 	}
 	,OnSectionChange: function() {
-		var c = this.get_app().view.section.current;
+		var c = this.get_app().view.section.current.get_name();
 		if(c == "") return;
 		window.location.hash = "/" + c;
 	}
@@ -13665,7 +13647,12 @@ tldc.client.controller.TLDCController.prototype = $extend(tldc.client.TLDCResour
 		});
 	}
 	,OnDataLoad: function(p_data,p_progress) {
-		this.get_app().view.loader.bar.get_layout().set_width(p_progress);
+		this.get_app().view.loader.bar.get_layout().set_width(this.get_app().model.get_progress());
+		if(p_progress >= 1.0) this.OnDataComplete();
+	}
+	,OnMapLoad: function(p_data,p_progress) {
+		this.get_app().view.loader.bar.get_layout().set_width(this.get_app().model.get_progress());
+		if(p_data != null) this.get_app().view.section.region.SetMap(p_data);
 		if(p_progress >= 1.0) this.OnDataComplete();
 	}
 	,OnHashChange: function(p_event) {
@@ -13736,10 +13723,16 @@ $hxClasses["tldc.client.model.TLDCModel"] = tldc.client.model.TLDCModel;
 tldc.client.model.TLDCModel.__name__ = ["tldc","client","model","TLDCModel"];
 tldc.client.model.TLDCModel.__super__ = tldc.client.TLDCResource;
 tldc.client.model.TLDCModel.prototype = $extend(tldc.client.TLDCResource.prototype,{
-	Load: function() {
+	get_progress: function() {
+		return (this.m_p0 + this.m_p1) * 0.5;
+	}
+	,Load: function() {
 		haxor.core.Console.Log("TLDCModel> Load data.",1);
 		this.filter = new tldc.client.model.TLDCFilter();
+		this.m_p0 = 0;
+		this.m_p1 = 0;
 		haxor.net.Web.Load("data/data-tree-2014.json",$bind(this,this.OnDataLoad));
+		haxor.net.Web.Load("image/map.xml",$bind(this,this.OnMapLoad));
 	}
 	,ProcessNode: function(p_node,p_parent) {
 		if(p_node.name == null) return;
@@ -13791,13 +13784,18 @@ tldc.client.model.TLDCModel.prototype = $extend(tldc.client.TLDCResource.prototy
 			}
 		}
 	}
+	,OnMapLoad: function(p_data,p_progress) {
+		this.m_p1 = p_progress;
+		this.get_app().controller.OnMapLoad(p_data,this.get_progress());
+	}
 	,OnDataLoad: function(p_data,p_progress) {
 		if(p_data != null) {
 			this.tree = JSON.parse(p_data);
 			this.TraverseTreeData(this.tree,null,$bind(this,this.AdjustTree));
 			this.Parse();
 		}
-		this.get_app().controller.OnDataLoad(p_data,p_progress);
+		this.m_p0 = p_progress;
+		this.get_app().controller.OnDataLoad(p_data,this.get_progress());
 	}
 	,Parse: function() {
 		this.donations = [];
@@ -13817,6 +13815,7 @@ tldc.client.model.TLDCModel.prototype = $extend(tldc.client.TLDCResource.prototy
 		n.parent = p;
 	}
 	,__class__: tldc.client.model.TLDCModel
+	,__properties__: $extend(tldc.client.TLDCResource.prototype.__properties__,{get_progress:"get_progress"})
 });
 tldc.client.view = {};
 tldc.client.view.HeaderView = function() {
@@ -13853,16 +13852,19 @@ tldc.client.view.LoaderView.prototype = $extend(tldc.client.TLDCResource.prototy
 	,__class__: tldc.client.view.LoaderView
 });
 tldc.client.view.SectionView = function() {
-	var _g = this;
 	tldc.client.TLDCResource.call(this);
 	this.container = this.get_app().get_stage().Find("content.section");
-	this.current = "";
-	haxor.thread.Activity.Run(function(t) {
-		if(haxor.input.Input.Down(haxor.input.KeyCode.D1)) _g.ChangeSection("A");
-		if(haxor.input.Input.Down(haxor.input.KeyCode.D2)) _g.ChangeSection("B");
-		if(haxor.input.Input.Down(haxor.input.KeyCode.D3)) _g.ChangeSection("C");
-		return true;
-	});
+	this.sections = [];
+	this.current = null;
+	var c;
+	var s;
+	c = this.container.Find("region");
+	if(c != null) {
+		s = new tldc.client.view.section.RegionSection(c);
+		this.sections.push(s);
+		this.current = s;
+		this.region = s;
+	}
 };
 $hxClasses["tldc.client.view.SectionView"] = tldc.client.view.SectionView;
 tldc.client.view.SectionView.__name__ = ["tldc","client","view","SectionView"];
@@ -13872,16 +13874,27 @@ tldc.client.view.SectionView.prototype = $extend(tldc.client.TLDCResource.protot
 		if(p_delay == null) p_delay = 0.0;
 		haxor.core.Tween.Add(this.container,"alpha",1.0,0.5,p_delay,haxor.math.Cubic.Out);
 	}
+	,GetSection: function(p_name) {
+		var _g1 = 0;
+		var _g = this.sections.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			if(this.sections[i].get_name() == p_name) return this.sections[i];
+		}
+		return null;
+	}
 	,ChangeSection: function(p_name) {
-		if(p_name == this.current) return;
-		var s = this.container.GetChildByName(p_name);
+		if(this.current != null) {
+			if(p_name == this.current.get_name()) return;
+		}
+		var s = this.GetSection(p_name);
 		if(s == null) {
 			haxor.core.Console.Log("SectionView> Section [" + p_name + "] not found!",1);
 			return;
 		}
-		this.current = p_name;
-		var v = s.get_layout().get_x();
-		haxor.core.Tween.Add(this.container.get_layout(),"x",-v,0.5,0.0,haxor.math.Cubic.Out);
+		this.current = s;
+		var v = s.container.get_layout().get_x();
+		haxor.core.Tween.Add(s.container.get_layout(),"x",-v,0.5,0.0,haxor.math.Cubic.Out);
 		haxor.thread.Activity.Delay(0.6,($_=this.get_app().controller,$bind($_,$_.OnSectionChange)));
 	}
 	,__class__: tldc.client.view.SectionView
@@ -13898,6 +13911,32 @@ tldc.client.view.TLDCView.__name__ = ["tldc","client","view","TLDCView"];
 tldc.client.view.TLDCView.__super__ = tldc.client.TLDCResource;
 tldc.client.view.TLDCView.prototype = $extend(tldc.client.TLDCResource.prototype,{
 	__class__: tldc.client.view.TLDCView
+});
+tldc.client.view.section = {};
+tldc.client.view.section.TLDCSection = function(p_container) {
+	haxor.core.Resource.call(this);
+	this.container = p_container;
+	this.set_name(this.container.get_name());
+};
+$hxClasses["tldc.client.view.section.TLDCSection"] = tldc.client.view.section.TLDCSection;
+tldc.client.view.section.TLDCSection.__name__ = ["tldc","client","view","section","TLDCSection"];
+tldc.client.view.section.TLDCSection.__super__ = haxor.core.Resource;
+tldc.client.view.section.TLDCSection.prototype = $extend(haxor.core.Resource.prototype,{
+	__class__: tldc.client.view.section.TLDCSection
+});
+tldc.client.view.section.RegionSection = function(p_container) {
+	tldc.client.view.section.TLDCSection.call(this,p_container);
+	haxor.core.Console.Log("RegionSection> Init.",1);
+	this.map = this.container.Find("map");
+};
+$hxClasses["tldc.client.view.section.RegionSection"] = tldc.client.view.section.RegionSection;
+tldc.client.view.section.RegionSection.__name__ = ["tldc","client","view","section","RegionSection"];
+tldc.client.view.section.RegionSection.__super__ = tldc.client.view.section.TLDCSection;
+tldc.client.view.section.RegionSection.prototype = $extend(tldc.client.view.section.TLDCSection.prototype,{
+	SetMap: function(p_data) {
+		this.map.m_element.innerHTML = p_data;
+	}
+	,__class__: tldc.client.view.section.RegionSection
 });
 var $_, $fid = 0;
 function $bind(o,m) { if( m == null ) return null; if( m.__id__ == null ) m.__id__ = $fid++; var f; if( o.hx__closures__ == null ) o.hx__closures__ = {}; else f = o.hx__closures__[m.__id__]; if( f == null ) { f = function(){ return f.method.apply(f.scope, arguments); }; f.scope = o; f.method = m; o.hx__closures__[m.__id__] = f; } return f; }

@@ -56,8 +56,8 @@ class TLDCController extends TLDCResource
 	 * Callback called when the section finished changing.
 	 */
 	public function OnSectionChange():Void
-	{
-		var c : String = app.view.section.current;
+	{		
+		var c : String = app.view.section.current.name;
 		if (c == "") return;
 		Browser.location.hash = "/"+c;
 	}
@@ -80,8 +80,18 @@ class TLDCController extends TLDCResource
 	 */
 	public function OnDataLoad(p_data:String, p_progress:Float):Void 
 	{ 
-		app.view.loader.bar.layout.width = p_progress; 
+		app.view.loader.bar.layout.width = app.model.progress; 
 		if (p_progress >= 1.0) OnDataComplete();	
+	}
+	
+	public function OnMapLoad(p_data:String, p_progress:Float):Void 
+	{
+		app.view.loader.bar.layout.width = app.model.progress; 
+		if (p_data != null)
+		{
+			app.view.section.region.SetMap(p_data);
+		}
+		if (p_progress >= 1.0) OnDataComplete();
 	}
 	
 	/**
