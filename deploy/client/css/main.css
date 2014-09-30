@@ -19,7 +19,24 @@
 a.clean
 {
 	text-decoration:none;	
-	color: #eee;
+	color: #eee;	
+}
+
+
+/*money counter*/
+.header-money
+{
+	font-family: "Roboto","Verdana";	
+	font-size: 30px;
+	font-weight: 700;
+	color: #062;
+}
+.header-money-small
+{
+	font-family: "Roboto","Verdana";	
+	font-size: 16px;
+	font-weight: 300;
+	color: #333;
 }
 
 /*Footer text container*/
@@ -34,7 +51,7 @@ a.clean
 /*Footer text.*/
 .footer-text
 {
-	font-family: "Verdana";
+	font-family: "Roboto","Verdana";
 	font-size: 10px;
 	color: #eee;
 }
@@ -46,7 +63,7 @@ a.clean
 	position:absolute;
 	width:100%;
 	top:8px;
-	font-family: "Verdana";
+	font-family: "Roboto","Verdana";
 	font-size: 10px;
 	color: #eee;
 	text-align: center;

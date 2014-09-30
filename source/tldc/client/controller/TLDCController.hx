@@ -69,6 +69,7 @@ class TLDCController extends TLDCResource
 	{
 		app.view.loader.Remove(0.8);
 		app.view.header.Show(1.8);
+		app.view.header.ChangeCounter(app.model.filter.GetTotalDonations(), 10.0, 2.8);
 		app.view.footer.Show(2.0);		
 		Activity.Delay(2.5, function():Void {  ApplyHash(Browser.location.hash);	} );
 	}

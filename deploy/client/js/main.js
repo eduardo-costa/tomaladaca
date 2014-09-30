@@ -13654,6 +13654,21 @@ tldc.client.TLDCResource.prototype = $extend(haxor.core.Resource.prototype,{
 	get_app: function() {
 		return this.get_application();
 	}
+	,FormatNumber: function(n) {
+		var s = n + "";
+		var r = "";
+		var _g1 = 0;
+		var _g = s.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var ri = s.length - 1 - i;
+			if(i > 0) {
+				if(i % 3 == 0) r = "." + r;
+			}
+			r = s.charAt(ri) + r;
+		}
+		return r + ",00";
+	}
 	,__class__: tldc.client.TLDCResource
 	,__properties__: $extend(haxor.core.Resource.prototype.__properties__,{get_app:"get_app"})
 });
@@ -13692,6 +13707,7 @@ tldc.client.controller.TLDCController.prototype = $extend(tldc.client.TLDCResour
 		var _g = this;
 		this.get_app().view.loader.Remove(0.8);
 		this.get_app().view.header.Show(1.8);
+		this.get_app().view.header.ChangeCounter(this.get_app().model.filter.GetTotalDonations(),10.0,2.8);
 		this.get_app().view.footer.Show(2.0);
 		haxor.thread.Activity.Delay(2.5,function() {
 			_g.ApplyHash(window.location.hash);
@@ -13890,16 +13906,32 @@ tldc.client.view.FooterView.prototype = $extend(tldc.client.TLDCResource.prototy
 tldc.client.view.HeaderView = function() {
 	tldc.client.TLDCResource.call(this);
 	this.container = this.get_application().get_stage().Find("content.header");
+	this.m_counter_field = window.document.getElementById("header-money-counter");
+	this.m_counter = 0;
 };
 $hxClasses["tldc.client.view.HeaderView"] = tldc.client.view.HeaderView;
 tldc.client.view.HeaderView.__name__ = ["tldc","client","view","HeaderView"];
 tldc.client.view.HeaderView.__super__ = tldc.client.TLDCResource;
 tldc.client.view.HeaderView.prototype = $extend(tldc.client.TLDCResource.prototype,{
-	Show: function(p_delay) {
+	get_counter: function() {
+		return this.m_counter;
+	}
+	,set_counter: function(v) {
+		this.m_counter = v | 0;
+		this.m_counter_field.innerText = "R$ " + this.FormatNumber(this.m_counter);
+		return v;
+	}
+	,Show: function(p_delay) {
 		if(p_delay == null) p_delay = 0.0;
 		haxor.core.Tween.Add(this.container.get_layout(),"py",0.0,0.5,p_delay,haxor.math.Cubic.Out);
 	}
+	,ChangeCounter: function(p_value,p_time,p_delay) {
+		if(p_delay == null) p_delay = 0;
+		if(p_time == null) p_time = 0.5;
+		haxor.core.Tween.Add(this,"counter",p_value,p_time,p_delay,haxor.math.Cubic.In);
+	}
 	,__class__: tldc.client.view.HeaderView
+	,__properties__: $extend(tldc.client.TLDCResource.prototype.__properties__,{set_counter:"set_counter",get_counter:"get_counter"})
 });
 tldc.client.view.LoaderView = function() {
 	tldc.client.TLDCResource.call(this);
