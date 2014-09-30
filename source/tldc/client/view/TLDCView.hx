@@ -14,6 +14,11 @@ class TLDCView extends TLDCResource
 	public var header : HeaderView;
 	
 	/**
+	 * Reference to the footer view.
+	 */
+	public var footer : FooterView;
+	
+	/**
 	 * Reference to the section view.
 	 */
 	public var section : SectionView;
@@ -30,9 +35,10 @@ class TLDCView extends TLDCResource
 	{
 		super();
 		Console.Log("TLDCView> Init", 1);
-		header = new HeaderView();
+		header  = new HeaderView();
+		footer  = new FooterView();
 		section = new SectionView();
-		loader = new LoaderView();
+		loader  = new LoaderView();
 		
 	}
 	

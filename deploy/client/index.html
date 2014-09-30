@@ -11,6 +11,22 @@
 	<meta property="og:image" content="image/logo.png">	
 	</head>
 <body style="margin: 0px; background-color:#333;">
+	<div id="fb-root"></div>
+	<script>		
+		setTimeout(function()
+		{
+			(function(d, s, id) 
+			{
+			  var js, fjs = d.getElementsByTagName(s)[0];
+			  if (d.getElementById(id)) return;
+			  js = d.createElement(s); 
+			  js.id = id;		  
+			  js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&appId=1489380857978375&version=v2.0";
+			  fjs.parentNode.insertBefore(js, fjs);
+			}(document, 'script', 'facebook-jssdk'));
+		},1000);		
+	</script>
+	
 	<strings>
 		<entry key="bkg-pattern">image/bkg-pattern.png</entry>
 		<entry key="logo-header">image/logo-header.png</entry>
@@ -18,13 +34,13 @@
 
 	<script src="js/main.js" verbose="1" application="tldc.client.TLDC"></script>
 	<div id="haxor">
-		<container name="content" wh="100%" style="background-color:#333;">
-			<sprite name="background" src="image/senado.jpg" pxy="50%" xy="60%" alpha="0.25"></sprite>
-			<sprite name="pattern" src="@bkg-pattern" wh="100%" alpha="1.0" pattern></sprite>
+		<container name="content" wh="100%">
+			<sprite name="background" src="image/senado.jpg" pxy="50%" xy="60%" alpha="0.33"></sprite>
+			<sprite name="pattern" src="@bkg-pattern" wh="100%" alpha="0.8" pattern></sprite>
 			
 			<container name="section" x="0%" wh="100%" alpha="0.0">
 				<container name="region" wh="100%" x="0%" style="overflow:hidden;">
-					<container name="map" h="100%" w="100%" px="50%" x="50%" margin="0 0 90 40">
+					<container name="map" h="100%" w="100%" px="50%" x="50%" margin="0 300 90 50">
 						
 					</container>
 				</container>				
@@ -34,13 +50,39 @@
 				<container name="bar" w="0%" h="16" py="50%" y="50%"  style="background-color:#062;"></container>
 			</container>
 			
+			<container name="footer" w="100%" h="35px" py="0%" y="100%" style="background-color: rgba(0,0,0,0.5);">				
+				<container name="content" wh="100%" margin="10 5 5 5">
+					<div class="footer">						
+						<span class="footer-text">Desenvolvimento &nbsp;</span>
+						<a class="clean" target="blank" href="https://www.facebook.com/thelaborat/">
+							<img src="image/logo-thelab-small.png" style="position: relative; top:5px;" />
+						</a>						
+						<span class="footer-text">&nbsp;+</span>
+						<a class="clean" target="blank" href="https://www.facebook.com/casadapropaganda/">
+							<img src="image/logo-cdp-small.png" style="position: relative; top:5px;" />
+						</a>						
+						<span class="footer-center">Fonte - 
+							<a class="clean" href="http://estadaodados.com/doacoes2014/#.VCsKdfldWVb" target="blank">
+								<strong>Folha de São Paulo</strong>
+							</a>
+						</span>
+						<span class="footer-text" style="position: absolute; top:-1px; right:15px;">Powered by 
+							<a class="clean" target="blank" href="https://github.com/haxorplatform/haxor-engine/">
+								<img src="image/logo-haxor-small.png" style="position: relative; top:6px;" />
+							</a>
+						</span>						
+					</div>
+				</container>
+			</container>
+			
 			<container name="header" w="100%" h="70px" py="100%" style="background-color: #eee;">
 				<sprite name="pattern" src="@bkg-pattern" wh="100%" alpha="0.3" pattern></sprite>
 				<sprite name="pattern" src="@logo-header" py="50%" y="50%" x="10"></sprite>
+				<div class="fb-like" data-href="http://labs.thelaborat.org/tomaladaca" data-layout="button_count" data-action="like" data-show-faces="false" data-share="true"></div>
 			</container>
 		</container>		
 		<a href="https://github.com/eduardo-costa/tomaladaca"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/e7bbb0521b397edbd5fe43e7f760759336b5e05f/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677265656e5f3030373230302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png"></a>				
 	</div>
-
+		
 </body>
 </html>

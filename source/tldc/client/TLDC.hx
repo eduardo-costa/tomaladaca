@@ -43,7 +43,6 @@ class TLDC extends Application
 		model		= new TLDCModel();
 		controller  = new TLDCController();
 		
-		
 		controller.Run();
 	}
 	

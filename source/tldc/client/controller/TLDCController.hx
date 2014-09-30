@@ -69,7 +69,7 @@ class TLDCController extends TLDCResource
 	{
 		app.view.loader.Remove(0.8);
 		app.view.header.Show(1.8);
-		app.view.section.Show(1.8);
+		app.view.footer.Show(2.0);		
 		Activity.Delay(2.5, function():Void {  ApplyHash(Browser.location.hash);	} );
 	}
 	
@@ -84,12 +84,21 @@ class TLDCController extends TLDCResource
 		if (p_progress >= 1.0) OnDataComplete();	
 	}
 	
+	/**
+	 * 
+	 * @param	p_data
+	 * @param	p_progress
+	 */
 	public function OnMapLoad(p_data:String, p_progress:Float):Void 
 	{
 		app.view.loader.bar.layout.width = app.model.progress; 
 		if (p_data != null)
 		{
-			app.view.section.region.SetMap(p_data);
+			Activity.Delay(2.5, function():Void 
+			{ 
+				app.view.section.region.SetMap(p_data); 
+				app.view.section.Show();
+			});
 		}
 		if (p_progress >= 1.0) OnDataComplete();
 	}

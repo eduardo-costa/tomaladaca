@@ -7,3 +7,48 @@
 	width: 100%;
 	height: 100%;
 }
+
+/*fb div adjustments*/
+.fb-like
+{	
+	top: 28px;
+	left: 330px;
+}
+
+/*clean links*/
+a.clean
+{
+	text-decoration:none;	
+	color: #eee;
+}
+
+/*Footer text container*/
+.footer
+{
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	display: inline-block;
+}
+
+/*Footer text.*/
+.footer-text
+{
+	font-family: "Verdana";
+	font-size: 10px;
+	color: #eee;
+}
+
+/*footer center text*/
+.footer-center
+{
+	display:block;
+	position:absolute;
+	width:100%;
+	top:8px;
+	font-family: "Verdana";
+	font-size: 10px;
+	color: #eee;
+	text-align: center;
+	vertical-align: middle;
+}
