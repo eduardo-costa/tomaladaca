@@ -1,5 +1,8 @@
 package tldc.client;
 import haxor.core.Resource;
+import haxor.dom.DOMEntity;
+import js.html.Element;
+import js.html.HTMLCollection;
 
 /**
  * Base class for all elements in the project.
@@ -16,6 +19,32 @@ class TLDCResource extends Resource
 	public function new() 
 	{
 		super();
+	}
+	
+	/**
+	 * 
+	 * @param	p_target
+	 * @param	p_callback
+	 */
+	public function TraverseDOM(p_target : DOMEntity,p_callback:Element->Void):Void
+	{
+		TraverseDOMStep(p_target.element, p_callback);
+	}
+	
+	/**
+	 * 
+	 * @param	e
+	 * @param	cb
+	 */
+	private function TraverseDOMStep(e:Element, cb:Element->Void):Void
+	{
+		if (e == null) return;
+		if (cb != null) cb(e);
+		var cl : HTMLCollection = e.children;
+		for (i in 0...cl.length)
+		{
+			TraverseDOMStep(cast cl.item(i), cb);
+		}
 	}
 	
 	private function FormatNumber(n:Int):String

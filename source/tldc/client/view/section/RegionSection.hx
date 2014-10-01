@@ -5,7 +5,9 @@ import haxor.dom.Container;
 import haxor.math.Color;
 import haxor.math.Easing.Cubic;
 import js.html.Element;
+import js.html.Event;
 import js.html.HTMLCollection;
+import js.html.InputElement;
 import js.html.svg.SVGElement;
 
 /**
@@ -31,6 +33,11 @@ class RegionSection extends TLDCSection
 	public var heat : Array<Color>;
 	
 	/**
+	 * Active filters.
+	 */
+	public var tags : Array<String>;
+	
+	/**
 	 * CTOR.
 	 * @param	p_container
 	 */
@@ -47,7 +54,50 @@ class RegionSection extends TLDCSection
 			new Color(0.0, 1.0, 0.0),
 			new Color(1.0, 1.0, 0.0),
 			new Color(1.0, 0.0, 0.0)
-		];
+		];		
+		container.Find("filters").element.onclick = OnFilterClick;
+		UpdateFlags();		
+	}
+	
+	/**
+	 * Update the checked filters.
+	 */
+	private function UpdateFlags():Void
+	{
+		tags = [];		
+		TraverseDOM(container.Find("filters"), function(e:Element):Void
+		{
+			if (e.nodeName.toLowerCase() != "input") return;
+			var cb : InputElement = cast e;	
+			if (!cb.checked) tags.push(cb.name);
+		});		
+	}
+	
+	/**
+	 * Callback called when
+	 * @param	p_event
+	 */
+	private function OnFilterClick(p_event : Event):Void
+	{
+		var e : Element = cast p_event.target;
+		if (e.nodeName.toLowerCase() == "input")
+		{
+			var cb : InputElement = cast e;
+			if (cb.name == "all")
+			{	
+				var ns : Element = cast cb.parentElement.nextSibling;
+				TraverseDOMStep(ns, function(it:Element):Void 
+				{ 
+					if (it.nodeName.toLowerCase() == "input")
+					{
+						var ccb : InputElement = cast it;
+						ccb.checked = cb.checked;					
+					}
+				});
+			}
+		}
+		UpdateFlags();
+		app.controller.filter.OnRegionFilterChange();
 	}
 	
 	/**

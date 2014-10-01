@@ -39,6 +39,11 @@ class Donation
 	public var position : String;
 	
 	/**
+	 * Name of the position.
+	 */
+	public var positionName : String;
+	
+	/**
 	 * Donation polician target.
 	 */
 	public var to : String;
@@ -59,6 +64,11 @@ class Donation
 	public var value : Int;
 	
 	/**
+	 * List of relevant data.
+	 */
+	public var tags : Array<String>;
+	
+	/**
 	 * Creates a new Donation entry.
 	 * @param	p_from
 	 * @param	p_to
@@ -68,13 +78,18 @@ class Donation
 	 */
 	public function new(p_type : String, p_donor:String, p_to:String,p_position:String, p_party:String, p_state:String, p_value:Int):Void
 	{
-		type = p_type;
+		type = p_type;		
 		donor = p_donor;
 		to	 = p_to;
 		party = p_party;
 		state = p_state;
 		value = p_value;
-		position = p_position;
+		positionName = p_position;
+		position = p_position;		
+		position = StringTools.replace(position, " ", "-").toLowerCase();
+		
+		if (position.indexOf("comitê") >= 0) position = "comite";
+		tags = [type, donor, party, state, position];		
 	}
 }
 
@@ -93,6 +108,16 @@ class TLDCModel extends TLDCResource
 	 * Array of donations parsed from the data tree.
 	 */
 	public var donations : Array<Donation>;
+	
+	/**
+	 * List of political parties.
+	 */
+	public var parties : Array<String>;
+	
+	/**
+	 * List of political positions.
+	 */
+	public var positions : Array<String>;
 	
 	/**
 	 * Reference to the filter class.
@@ -239,6 +264,19 @@ class TLDCModel extends TLDCResource
 		donations = [];		
 		TraverseTreeData(tree, null, ProcessNode);
 		filter.Reset();
+		parties = [];
+		positions = [];
+		//var s : String = "";
+		for (i in 0...donations.length)
+		{			
+			if (donations[i].position == "presidente") trace(donations[i]);
+			var s :String;
+			s = donations[i].party;
+			if (s != "") if (parties.indexOf(s) < 0) parties.push(s);
+			s = donations[i].position;
+			if (s != "") if (positions.indexOf(s) < 0) positions.push(s);
+		}
+		
 	}
 	
 	/**

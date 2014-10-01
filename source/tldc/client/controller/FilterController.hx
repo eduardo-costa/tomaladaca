@@ -1,5 +1,6 @@
 package tldc.client.controller;
 import haxor.math.Mathf;
+import haxor.thread.Activity;
 import tldc.client.model.TLDCFilter;
 import tldc.client.TLDCResource;
 import tldc.client.view.section.RegionSection.RegionState;
@@ -30,32 +31,47 @@ class FilterController extends TLDCResource
 		
 		switch(p_mode)
 		{
-			case "region-heat-all":
+			case "region-heat":
 			{
 				var t : Float = 0.0;
 				var vmin : Float = 10000000000000000;
 				var vmax : Float = -vmin;
+				
+				var tags : Array<String> = app.view.section.region.tags;
+				
+				f.Reset();
+				f.Filter(Filters.ByTags(tags, true));
+				f.Save();
+				
 				for (i in 0...rl.length)
 				{
-					var rg : RegionState = rl[i];
-					f.Reset();
-					f.Filter(Filters.ByState([rg.id]));
-					var v : Float = f.GetTotalDonations();					
+					var rg : RegionState = rl[i];		
+					f.Load();
+					f.Filter(Filters.ByState([rg.id,"BR"]));
+					var v : Float = f.GetTotalDonations();
 					vmin = Mathf.Min(vmin, v);
 					vmax = Mathf.Max(vmax, v);
 				}
 				
+				trace(vmin + " " + vmax);
+				
 				for (i in 0...rl.length)
 				{
 					var rg : RegionState = rl[i];
-					f.Reset();
-					f.Filter(Filters.ByState([rg.id]));
+					f.Load();
+					f.Filter(Filters.ByState([rg.id,"BR"]));									
 					var v : Float = f.GetTotalDonations();					
-					var r : Float = (v - vmin) / (vmax - vmin);					
+					var dv : Float = (vmax - vmin);					
+					var r : Float = dv<=0.0 ? 0.0 : ((v - vmin) / dv);
 					app.view.section.region.SetRegionHeat(rg.id, r);
 				}
 			}
 		}		
+	}
+	
+	public function OnRegionFilterChange():Void
+	{
+		SetMode("region-heat");
 	}
 	
 }

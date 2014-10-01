@@ -6,6 +6,7 @@
 	<link href="favicon.png" rel="shortcut icon" type="image/x-icon">
 	<link href='http://fonts.googleapis.com/css?family=Roboto:400,700' rel='stylesheet' type='text/css'>
 	<link rel="stylesheet" href="css/main.css">
+	<meta name="fragment" content="!">
 	<meta name="description" content="Infográfico sobre as relações de financiamento de partidos e políticos.">
 	<meta property="og:description" content="Infográfico sobre as relações de financiamento de partidos e políticos.">
 	<meta property="og:title" content="Toma Lá, Dá Cá">
@@ -13,6 +14,7 @@
 	<meta property="og:url"   content="http://labs.thelaborat.org/tomaladaca/" />
 	<meta property="og:type"   content="website" />
 	<meta property="fb:app_id" content="1489380857978375" />
+	<script src="js/main.js" verbose="0" application="tldc.client.TLDC"></script>
 	</head>
 <body style="margin: 0px; background-color:#333;">
 	<div id="fb-root"></div>
@@ -36,8 +38,6 @@
 	  ga('send', 'pageview');
 	</script>
 
-	<script src="js/main.js" verbose="0" application="tldc.client.TLDC"></script>
-	
 	<strings style="display:none;">
 		<entry key="bkg-pattern">image/bkg-pattern.png</entry>
 		<entry key="logo-header">image/logo-header.png</entry>
@@ -53,21 +53,68 @@
 					<container name="map" h="100%" w="100%" px="50%" x="50%" margin="0 500 90 50">
 						
 					</container>						
-					<container name="filters" w="200" h="350" px="420" py="50%" x="100%" y="50%"  style="background-color: #eee; border-radius: 8px; overflow:hidden;">
-					<span class="panel-t1">Filtros</span><br/><br/>					
-					<div class="panel-t2">Cargo</div>
-					<div class="panel-form">
-						<input type="checkbox" value="Presidente"/><span class="checkbox-label">Presidente</span><br/>
-						<input type="checkbox" value="Governador"/><span class="checkbox-label">Governador</span><br/>
-						<input type="checkbox" value="Deputado Federal"/><span class="checkbox-label">Deputado Federal</span><br/>
-						<input type="checkbox" value="Deputado Estadual"/><span class="checkbox-label">Deputado Estadual</span><br/>
-					</div>
-					<div class="panel-t2">Fonte</div>
-					<div class="panel-form">
-						<input type="checkbox" value="empresa"/><span class="checkbox-label">Empresas</span><br/>
-						<input type="checkbox" value="pessoa"/><span class="checkbox-label">Pessoas</span><br/>
-						<input type="checkbox" value="fundo"/><span class="checkbox-label">Fundo Partidário</span><br/>						
-					</div>					
+					<container name="filters" w="280" h="440" px="420" py="50%" x="100%" y="50%"  style="background-color: #eee; border-radius: 8px; overflow:hidden;">
+						<div class="panel-t1"><strong>Filtros</strong></div>
+						<!--<div class="panel-t2">Cargo</div>-->
+						<label class="panel-t2"><input class="t2-checkbox" type="checkbox" checked="true" name="all" />Para</label>
+						<div class="panel-form">
+							<div class="panel-column" style="float:left;">
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="presidente" />Presidente</label>
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="governador" />Governador</label>
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="senador" />Senador</label>
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="deputado-federal" />Deputado Federal</label>
+							</div>
+							<div class="panel-column" style="float:right;">
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="deputado-estadual" />Deputado Estadual</label>							
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="deputado-distrital" />Deputado Distrital</label>							
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="comite" />Partido</label>							
+							</div>
+						</div>
+						<label class="panel-t2"><input class="t2-checkbox" type="checkbox" checked="true" name="all" />Fonte</label>
+						<div class="panel-form">
+							<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="empresa" />Empresas</label>
+							<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="pessoa" />Pessoas</label>
+							<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="fundo" />Fundo Partidário</label>							
+						</div>	
+						
+						<label class="panel-t2"><input class="t2-checkbox" type="checkbox" checked="true" name="all" />Partido</label>
+						<div class="panel-form">
+							<div class="panel-column" style="float:left;">
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PSB" />PSB</label>
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PT" />PT</label>
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PTB" />PTB</label>
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PROS" />PROS</label>
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PSDB" />PSDB</label>
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PMDB" />PMDB</label>
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PDT" />PDT</label>
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PSC" />PSC</label>
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PSD" />PSD</label>
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="DEM" />DEM</label>
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PV" />PV</label>
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PR" />PR</label>
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="SD" />SD</label>
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PSL" />PSL</label>
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PEN" />PEN</label>
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PPS" />PPS</label>
+							</div>
+							<div class="panel-column" style="float:right;">								
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PRP" />PRP</label>
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PC DO B" />PC DO B</label>
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PP" />PP</label>
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PTN" />PTN</label>
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PPL" />PPL</label>
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PHS" />PHS</label>
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PMN" />PMN</label>
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PSOL" />PSOL</label>
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PSDC" />PSDC</label>
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PSTU" />PSTU</label>
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PRB" />PRB</label>
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PTC" />PTC</label>
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PT DO B" />PT DO B</label>
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PCB" />PCB</label>
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PRTB" />PRTB</label>
+							</div>
+						</div>
 					</container>
 				</container>				
 			</container>

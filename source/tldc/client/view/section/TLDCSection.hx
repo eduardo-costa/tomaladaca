@@ -1,12 +1,13 @@
 package tldc.client.view.section;
 import haxor.core.Resource;
 import haxor.dom.Container;
+import tldc.client.TLDCResource;
 
 /**
  * Base class for this app sections.
  * @author ...
  */
-class TLDCSection extends Resource
+class TLDCSection extends TLDCResource
 {
 
 	/**

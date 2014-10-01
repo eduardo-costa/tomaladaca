@@ -76,9 +76,12 @@ a.clean
 	position: relative;
 	font-family: "Roboto","Verdana";
 	font-size: 16px;
-	color: #333;
-	margin-left: 12px;
-	top: 10px;
+	color: #eee;	
+	padding: 6px 0px 5px 7px;		
+	margin-top: -3px;
+	margin-bottom: 3px;
+	top: 0px;
+	background-color: #333;
 }
 
 /*panel title level 2*/
@@ -88,33 +91,51 @@ a.clean
 	font-family: "Roboto","Verdana";
 	font-size: 14px;
 	color: #333;
-	background-color:#ddd;	
-	padding-left: 16px;	
+	background-color:#ddd;		
+	margin-top: 0px;
+	margin-bottom: 2px;
+	padding-left: 13px;
+	padding-bottom: 2px;
+	display: block;
 }
 
 /*container for the panel inputs*/
 .panel-form
 {
 	position: relative;	
-	padding-top: 3px;	
+	padding-top: 0px;	
 	padding-left: 13px;
-	overflow:hidden;
+	margin-bottom: 2px;
+	overflow:hidden;	
 }
 
-/*checkbox*/
-checkbox
+.panel-column
 {
-	font-family: "Roboto","Verdana";
-	font-size: 12px;
-	color: #333;
+	position:relative;
+	display: inline-block;	
+	width:50%;	
 }
 
-/*text at the side of checkbox*/
+/*checkbox button*/
+.panel-checkbox
+{
+	position: relative;
+	top:3px;
+}
+
+.t2-checkbox
+{
+	position: relative;
+	top:2px;
+}
+
 .checkbox-label
 {
 	position: relative;
+	top:0px;
+	margin-top:-5px;
 	font-family: "Roboto","Verdana";
-	font-size: 11px;
-	top:-3px;
+	font-size: 11px;	
 	color: #333;
+	display: block;
 }

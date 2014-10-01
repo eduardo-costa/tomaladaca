@@ -108,7 +108,7 @@ class TLDCController extends TLDCResource
 			{ 
 				app.view.section.region.SetMap(p_data); 
 				app.view.section.Show();
-				Activity.Delay(1.0, function():Void { filter.SetMode("region-heat-all"); } );
+				Activity.Delay(1.0, function():Void { filter.SetMode("region-heat"); } );
 			});
 		}
 		if (p_progress >= 1.0) OnDataComplete();
