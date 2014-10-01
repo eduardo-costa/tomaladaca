@@ -9,31 +9,40 @@
 	<meta name="description" content="Infográfico sobre as relações de financiamento de partidos e políticos.">
 	<meta property="og:description" content="Infográfico sobre as relações de financiamento de partidos e políticos.">
 	<meta property="og:title" content="Toma Lá, Dá Cá">
-	<meta property="og:image" content="image/logo.png">		
+	<meta property="og:image" content="http://labs.thelaborat.org/tomaladaca/image/logo512.png">		
+	<meta property="og:url"   content="http://labs.thelaborat.org/tomaladaca/" />
+	<meta property="og:type"   content="website" />
+	<meta property="fb:app_id" content="1489380857978375" />
 	</head>
 <body style="margin: 0px; background-color:#333;">
 	<div id="fb-root"></div>
-	<script>		
-		setTimeout(function()
+	<script>				
+		window.fbAsyncInit = function() 
 		{
-			(function(d, s, id) 
-			{
-			  var js, fjs = d.getElementsByTagName(s)[0];
-			  if (d.getElementById(id)) return;
-			  js = d.createElement(s); 
-			  js.id = id;		  
-			  js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&appId=1489380857978375&version=v2.0";
-			  fjs.parentNode.insertBefore(js, fjs);
-			}(document, 'script', 'facebook-jssdk'));
-		},1000);		
+			FB.init
+			({
+			  appId      : '1489380857978375',	
+			  xfbml      : true,
+			  version    : 'v2.1'
+			});
+		};
+
+		(function(d, s, id){
+         var js, fjs = d.getElementsByTagName(s)[0];
+         if (d.getElementById(id)) {return;}
+         js = d.createElement(s); js.id = id;
+         js.src = "//connect.facebook.net/en_US/sdk.js";
+         fjs.parentNode.insertBefore(js, fjs);
+       }(document, 'script', 'facebook-jssdk'));			
 	</script>
+
+	<script src="js/main.js" verbose="0" application="tldc.client.TLDC"></script>
 	
 	<strings>
 		<entry key="bkg-pattern">image/bkg-pattern.png</entry>
 		<entry key="logo-header">image/logo-header.png</entry>
 	</strings>
 
-	<script src="js/main.js" verbose="0" application="tldc.client.TLDC"></script>
 	<div id="haxor">
 		<container name="content" wh="100%">
 			<sprite name="background" src="image/senado.jpg" pxy="50%" xy="60%" alpha="0.33"></sprite>
@@ -56,7 +65,7 @@
 					<div class="footer">			
 						<span class="footer-center">Fonte - 
 							<a class="clean" href="http://estadaodados.com/doacoes2014/#.VCsKdfldWVb" target="blank">
-								<strong>Folha de São Paulo</strong>
+								<strong>Jornal Estadão</strong>
 							</a>
 						</span>
 						<span class="footer-text">Desenvolvimento &nbsp;</span>
@@ -79,10 +88,11 @@
 			<container name="header" w="100%" h="70px" py="100%" style="background-color: #eee;">
 				<sprite name="pattern" src="@bkg-pattern" wh="100%" alpha="0.3" pattern></sprite>
 				<sprite name="pattern" src="@logo-header" py="50%" y="50%" x="10"></sprite>
-				<div class="fb-like" data-href="http://labs.thelaborat.org/tomaladaca" data-layout="button_count" data-action="like" data-show-faces="false" data-share="true"></div>
+				<div class="fb-like" data-href="http://labs.thelaborat.org/tomaladaca/" data-layout="button_count" data-action="like" data-show-faces="false" data-share="true"></div>
+				<!--<fb:like href="http://labs.thelaborat.org/tomaladaca/" layout="button_count" action="like" show_faces="false" share="true"></fb:like>-->
 				<div style="position: absolute; top: 17px;right: 140px;">
 					<span id="header-money-counter" class="header-money">R$ 0,00</span>
-					<span class="header-money-small">de doações em 2014</span>
+					<span class="header-money-small">em doações em 2014</span>
 				</div>
 			</container>
 		</container>		

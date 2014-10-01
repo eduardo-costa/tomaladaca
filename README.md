@@ -2,6 +2,8 @@
 
 Infográfico web mostrando as relações entre partidos/políticos e seus patrocinadores.
 
+http://labs.thelaborat.org/tomaladaca/
+
 ## Sumário
 
 Versão com mais filtros e diferentes visualizações dos dados disponibilizados na matéria do jornal Folha de São Paulo.  
@@ -18,6 +20,12 @@ Site desenvolvido com tecnologia HTML5 utilizando a linguagem Haxe e o framework
 ## Autor
 
 * Eduardo Dias da Costa
+* https://www.facebook.com/thelaborat
 * http://br.linkedin.com/in/eduardopons/
 * http://twitter.com/EduardoDias
+	
+## Créditos
+
+* Layout - Casa da Propaganda - https://www.facebook.com/casadapropaganda
+* Dados - Jornal Estadão - http://estadaodados.com/doacoes2014/#.VCtUL_ldUwD/
 
