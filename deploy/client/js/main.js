@@ -12882,7 +12882,7 @@ haxor.platform.html.Entry.OnWindowLoad = function(p_event) {
 	haxor.graphics.GL.Initialize(haxor.platform.html.Entry.m_application);
 	haxor.graphics.GL.m_gl.Initialize(app_container_id);
 	haxor.graphics.GL.m_gl.CheckExtensions();
-	haxor.core.Console.Log("Haxor> Creating Stage with [" + app_container_id + "]");
+	haxor.core.Console.Log("Haxor> Creating Stage with [" + app_container_id + "]",1);
 	var stage = new haxor.dom.DOMStage(haxor.platform.html.Entry.m_application.m_container);
 	stage.Parse(haxor.platform.html.Entry.m_application.m_container);
 	haxe.Timer.delay(function() {
@@ -12990,7 +12990,7 @@ haxor.platform.html.graphics.WebGL.prototype = $extend(haxor.graphics.GraphicCon
 				haxor.graphics.GL.TEXTURE_ANISOTROPY = ext.TEXTURE_MAX_ANISOTROPY_EXT;
 				haxor.graphics.GL.MAX_TEXTURE_ANISOTROPY = this.c.getParameter(ext.MAX_TEXTURE_MAX_ANISOTROPY_EXT);
 				haxor.graphics.GL.TEXTURE_ANISOTROPY_ENABLED = true;
-				haxor.core.Console.Log("\t\tMax Aniso: " + haxor.graphics.GL.MAX_TEXTURE_ANISOTROPY);
+				haxor.core.Console.Log("\t\tMax Aniso: " + haxor.graphics.GL.MAX_TEXTURE_ANISOTROPY,1);
 				break;
 			case "OES_texture_float":
 				haxor.graphics.GL.TEXTURE_FLOAT = true;
@@ -13001,7 +13001,7 @@ haxor.platform.html.graphics.WebGL.prototype = $extend(haxor.graphics.GraphicCon
 			}
 		}
 		haxor.graphics.GL.MAX_ACTIVE_TEXTURE = this.c.getParameter(34930);
-		haxor.core.Console.Log("\tMax Active Textures: " + haxor.graphics.GL.MAX_ACTIVE_TEXTURE);
+		haxor.core.Console.Log("\tMax Active Textures: " + haxor.graphics.GL.MAX_ACTIVE_TEXTURE,1);
 	}
 	,Resize: function() {
 		this.m_canvas.width = this.m_container.clientWidth;
@@ -13622,11 +13622,54 @@ tldc.client.TLDCResource.prototype = $extend(haxor.core.Resource.prototype,{
 	,__properties__: $extend(haxor.core.Resource.prototype.__properties__,{get_app:"get_app"})
 });
 tldc.client.controller = {};
+tldc.client.controller.FilterController = function() {
+	tldc.client.TLDCResource.call(this);
+};
+$hxClasses["tldc.client.controller.FilterController"] = tldc.client.controller.FilterController;
+tldc.client.controller.FilterController.__name__ = ["tldc","client","controller","FilterController"];
+tldc.client.controller.FilterController.__super__ = tldc.client.TLDCResource;
+tldc.client.controller.FilterController.prototype = $extend(tldc.client.TLDCResource.prototype,{
+	SetMode: function(p_mode) {
+		var rl = this.get_app().view.section.region.regions;
+		var f = this.get_app().model.filter;
+		switch(p_mode) {
+		case "region-heat-all":
+			var t = 0.0;
+			var vmin = 10000000000000000;
+			var vmax = -vmin;
+			var _g1 = 0;
+			var _g = rl.length;
+			while(_g1 < _g) {
+				var i = _g1++;
+				var rg = rl[i];
+				f.Reset();
+				f.Filter(tldc.client.model.Filters.ByState([rg.id]));
+				var v = f.GetTotalDonations();
+				vmin = Math.min(vmin,v);
+				vmax = Math.max(vmax,v);
+			}
+			var _g11 = 0;
+			var _g2 = rl.length;
+			while(_g11 < _g2) {
+				var i1 = _g11++;
+				var rg1 = rl[i1];
+				f.Reset();
+				f.Filter(tldc.client.model.Filters.ByState([rg1.id]));
+				var v1 = f.GetTotalDonations();
+				var r = (v1 - vmin) / (vmax - vmin);
+				this.get_app().view.section.region.SetRegionHeat(rg1.id,r);
+			}
+			break;
+		}
+	}
+	,__class__: tldc.client.controller.FilterController
+});
 tldc.client.controller.TLDCController = function() {
 	tldc.client.TLDCResource.call(this);
 	haxor.core.Console.Log("TLDCController> Init",1);
 	window.onhashchange = $bind(this,this.OnHashChange);
 	this.path = [];
+	this.filter = new tldc.client.controller.FilterController();
 };
 $hxClasses["tldc.client.controller.TLDCController"] = tldc.client.controller.TLDCController;
 tldc.client.controller.TLDCController.__name__ = ["tldc","client","controller","TLDCController"];
@@ -13672,6 +13715,9 @@ tldc.client.controller.TLDCController.prototype = $extend(tldc.client.TLDCResour
 		if(p_data != null) haxor.thread.Activity.Delay(2.5,function() {
 			_g.get_app().view.section.region.SetMap(p_data);
 			_g.get_app().view.section.Show();
+			haxor.thread.Activity.Delay(1.0,function() {
+				_g.filter.SetMode("region-heat-all");
+			});
 		});
 		if(p_progress >= 1.0) this.OnDataComplete();
 	}
@@ -13684,9 +13730,14 @@ tldc.client.model = {};
 tldc.client.model.Filters = function() { };
 $hxClasses["tldc.client.model.Filters"] = tldc.client.model.Filters;
 tldc.client.model.Filters.__name__ = ["tldc","client","model","Filters"];
-tldc.client.model.Filters.ByState = function(p_state) {
+tldc.client.model.Filters.ByState = function(p_tags) {
 	return function(d) {
-		return HxOverrides.indexOf(p_state,d.state,0) >= 0;
+		return HxOverrides.indexOf(p_tags,d.state,0) >= 0;
+	};
+};
+tldc.client.model.Filters.ByPosition = function(p_tags) {
+	return function(d) {
+		return HxOverrides.indexOf(p_tags,d.position,0) >= 0;
 	};
 };
 tldc.client.model.TLDCFilter = function() {
@@ -13699,18 +13750,24 @@ tldc.client.model.TLDCFilter.__super__ = tldc.client.TLDCResource;
 tldc.client.model.TLDCFilter.prototype = $extend(tldc.client.TLDCResource.prototype,{
 	Filter: function(p_criteria) {
 		if(this._m == null) return [];
-		if(p_criteria == null) return this._m.donations;
+		if(p_criteria == null) return this._r;
 		var l = [];
 		var _g1 = 0;
-		var _g = this._m.donations.length;
+		var _g = this._r.length;
 		while(_g1 < _g) {
 			var i = _g1++;
-			if(p_criteria(this._m.donations[i])) l.push(this._m.donations[i]);
+			if(p_criteria(this._r[i])) l.push(this._r[i]);
 		}
-		return l;
+		this._r = l;
+		return this._r;
 	}
-	,GetTotalDonations: function(p_criteria) {
-		var l = this.Filter(p_criteria);
+	,Reset: function() {
+		this._r = this._m.donations.slice();
+	}
+	,GetTotalDonations: function(p_use_all) {
+		if(p_use_all == null) p_use_all = false;
+		var l;
+		if(p_use_all) l = this._m.donations; else l = this._r;
 		var s = 0;
 		var _g1 = 0;
 		var _g = l.length;
@@ -13820,6 +13877,7 @@ tldc.client.model.TLDCModel.prototype = $extend(tldc.client.TLDCResource.prototy
 	,Parse: function() {
 		this.donations = [];
 		this.TraverseTreeData(this.tree,null,$bind(this,this.ProcessNode));
+		this.filter.Reset();
 	}
 	,TraverseTreeData: function(p_node,p_parent,p_callback) {
 		p_callback(p_node,p_parent);
@@ -13978,17 +14036,161 @@ tldc.client.view.section.TLDCSection.prototype = $extend(haxor.core.Resource.pro
 tldc.client.view.section.RegionSection = function(p_container) {
 	tldc.client.view.section.TLDCSection.call(this,p_container);
 	haxor.core.Console.Log("RegionSection> Init.",1);
+	this.regions = [];
 	this.map = this.container.Find("map");
+	this.heat = [new haxor.math.Color(0.0,0.0,1.0),new haxor.math.Color(0.0,1.0,1.0),new haxor.math.Color(0.0,1.0,0.0),new haxor.math.Color(1.0,1.0,0.0),new haxor.math.Color(1.0,0.0,0.0)];
 };
 $hxClasses["tldc.client.view.section.RegionSection"] = tldc.client.view.section.RegionSection;
 tldc.client.view.section.RegionSection.__name__ = ["tldc","client","view","section","RegionSection"];
 tldc.client.view.section.RegionSection.__super__ = tldc.client.view.section.TLDCSection;
 tldc.client.view.section.RegionSection.prototype = $extend(tldc.client.view.section.TLDCSection.prototype,{
-	SetMap: function(p_data) {
+	GetRegion: function(p_id) {
+		var _g1 = 0;
+		var _g = this.regions.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			if(this.regions[i].id == p_id) return this.regions[i];
+		}
+		return null;
+	}
+	,SetRegionHeat: function(p_id,p_heat) {
+		var r = this.GetRegion(p_id);
+		var c = haxor.math.Color.Sample(this.heat,p_heat);
+		haxor.core.Tween.Add(r,"color",c,0.5,null,haxor.math.Cubic.Out);
+	}
+	,ResetColors: function() {
+		var c = new haxor.math.Color(1,1,1,1);
+		var _g1 = 0;
+		var _g = this.regions.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var r = this.regions[i];
+			haxor.core.Tween.Add(r,"color",c,0.5,null,haxor.math.Cubic.Out);
+		}
+	}
+	,SetMap: function(p_data) {
 		this.map.m_element.innerHTML = p_data;
+		var l = this.map.m_element.firstElementChild.children;
+		var _g1 = 0;
+		var _g = l.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var it = l.item(i);
+			if(it.nodeName.toLowerCase() != "path") continue;
+			var r = new tldc.client.view.section.RegionState(it);
+			this.regions.push(r);
+		}
 	}
 	,__class__: tldc.client.view.section.RegionSection
 });
+tldc.client.view.section.RegionState = function(p_path) {
+	this.m_path = p_path;
+	this.id = this.m_path.id;
+	this.m_path.setAttribute("stroke-width","100px");
+	this.m_color = new haxor.math.Color(1,1,1,1);
+	this.set_color(new haxor.math.Color(1,1,1,1));
+	var _g = this.id;
+	switch(_g) {
+	case "AC":
+		this.name = "Acre";
+		break;
+	case "AL":
+		this.name = "Alagoas";
+		break;
+	case "AP":
+		this.name = "Amapá";
+		break;
+	case "AM":
+		this.name = "Amazonas";
+		break;
+	case "BA":
+		this.name = "Bahia";
+		break;
+	case "CE":
+		this.name = "Ceará";
+		break;
+	case "DF":
+		this.name = "Distrito Federal";
+		break;
+	case "ES":
+		this.name = "Espírito Santo";
+		break;
+	case "GO":
+		this.name = "Goiás";
+		break;
+	case "MA":
+		this.name = "Maranhão";
+		break;
+	case "MT":
+		this.name = "Mato Grosso";
+		break;
+	case "MS":
+		this.name = "Mato Grosso do Sul";
+		break;
+	case "MG":
+		this.name = "Minas Gerais";
+		break;
+	case "PA":
+		this.name = "Pará";
+		break;
+	case "PB":
+		this.name = "Paraíba";
+		break;
+	case "PR":
+		this.name = "Paraná";
+		break;
+	case "PE":
+		this.name = "Pernambuco";
+		break;
+	case "PI":
+		this.name = "Piauí";
+		break;
+	case "RJ":
+		this.name = "Rio de Janeiro";
+		break;
+	case "RN":
+		this.name = "Rio Grande do Norte";
+		break;
+	case "RS":
+		this.name = "Rio Grande do Sul";
+		break;
+	case "RO":
+		this.name = "Rondônia";
+		break;
+	case "RR":
+		this.name = "Roraima";
+		break;
+	case "SC":
+		this.name = "Santa Catarina";
+		break;
+	case "SP":
+		this.name = "São Paulo";
+		break;
+	case "SE":
+		this.name = "Sergipe";
+		break;
+	case "TO":
+		this.name = "Tocantins";
+		break;
+	}
+};
+$hxClasses["tldc.client.view.section.RegionState"] = tldc.client.view.section.RegionState;
+tldc.client.view.section.RegionState.__name__ = ["tldc","client","view","section","RegionState"];
+tldc.client.view.section.RegionState.prototype = {
+	get_color: function() {
+		return this.m_color;
+	}
+	,set_color: function(v) {
+		this.m_color.SetColor(v);
+		var hex_fill = "#" + StringTools.hex(v.get_rgb(),6);
+		var hex_line = "#" + StringTools.hex(this.m_color.get_clone().Scale(0.6).get_rgb(),6);
+		this.m_path.setAttribute("fill",hex_fill);
+		this.m_path.setAttribute("stroke",hex_line);
+		return v;
+	}
+	,__class__: tldc.client.view.section.RegionState
+	,__properties__: {set_color:"set_color",get_color:"get_color"}
+};
 var $_, $fid = 0;
 function $bind(o,m) { if( m == null ) return null; if( m.__id__ == null ) m.__id__ = $fid++; var f; if( o.hx__closures__ == null ) o.hx__closures__ = {}; else f = o.hx__closures__[m.__id__]; if( f == null ) { f = function(){ return f.method.apply(f.scope, arguments); }; f.scope = o; f.method = m; o.hx__closures__[m.__id__] = f; } return f; }
 if(Array.prototype.indexOf) HxOverrides.indexOf = function(a,o,i) {

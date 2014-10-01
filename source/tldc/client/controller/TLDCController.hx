@@ -13,7 +13,15 @@ import tldc.client.model.TLDCFilter.Filters;
  */
 class TLDCController extends TLDCResource
 {
+	/**
+	 * Hash path list.
+	 */
 	public var path : Array<String>;
+	
+	/**
+	 * Reference to the controller of filtering.
+	 */
+	public var filter : FilterController;
 
 	/**
 	 * CTOR.
@@ -24,6 +32,7 @@ class TLDCController extends TLDCResource
 		Console.Log("TLDCController> Init", 1);
 		Browser.window.onhashchange = OnHashChange;				
 		path = [];
+		filter = new FilterController();
 	}
 	
 	/**
@@ -99,6 +108,7 @@ class TLDCController extends TLDCResource
 			{ 
 				app.view.section.region.SetMap(p_data); 
 				app.view.section.Show();
+				Activity.Delay(1.0, function():Void { filter.SetMode("region-heat-all"); } );
 			});
 		}
 		if (p_progress >= 1.0) OnDataComplete();

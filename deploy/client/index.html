@@ -17,28 +17,20 @@
 <body style="margin: 0px; background-color:#333;">
 	<div id="fb-root"></div>
 	<script>				
-		window.fbAsyncInit = function() 
+		window.fbAsyncInit = function() { FB.init({ appId      : '1489380857978375',	 xfbml : true, version    : 'v2.1' }); };
+		(function(d, s, id)
 		{
-			FB.init
-			({
-			  appId      : '1489380857978375',	
-			  xfbml      : true,
-			  version    : 'v2.1'
-			});
-		};
-
-		(function(d, s, id){
          var js, fjs = d.getElementsByTagName(s)[0];
          if (d.getElementById(id)) {return;}
          js = d.createElement(s); js.id = id;
          js.src = "//connect.facebook.net/en_US/sdk.js";
          fjs.parentNode.insertBefore(js, fjs);
-       }(document, 'script', 'facebook-jssdk'));			
+        }(document, 'script', 'facebook-jssdk'));			
 	</script>
 
 	<script src="js/main.js" verbose="0" application="tldc.client.TLDC"></script>
 	
-	<strings>
+	<strings style="display:none;">
 		<entry key="bkg-pattern">image/bkg-pattern.png</entry>
 		<entry key="logo-header">image/logo-header.png</entry>
 	</strings>
@@ -69,13 +61,13 @@
 							</a>
 						</span>
 						<span class="footer-text">Desenvolvimento &nbsp;</span>
-						<a class="clean" title="the.laboratory" target="blank" href="https://www.facebook.com/thelaborat/">
-							<img src="image/logo-thelab-small.png" style="position: relative; top:5px;" />
-						</a>						
+							<a class="clean" title="the.laboratory" target="blank" href="https://www.facebook.com/thelaborat/">
+								<img src="image/logo-thelab-small.png" style="position: relative; top:5px;" />
+							</a>						
 						<span class="footer-text">&nbsp;+</span>
-						<a class="clean" title="Casa da Propaganda" target="blank" href="https://www.facebook.com/casadapropaganda/">
-							<img src="image/logo-cdp-small.png" style="position: relative; top:5px;" />
-						</a>												
+							<a class="clean" title="Casa da Propaganda" target="blank" href="https://www.facebook.com/casadapropaganda/">
+								<img src="image/logo-cdp-small.png" style="position: relative; top:5px;" />
+							</a>												
 						<span class="footer-text" style="position: absolute; top:-1px; right:15px;">Powered by 
 							<a class="clean" title="Haxor Engine" target="blank" href="https://github.com/haxorplatform/haxor-engine/">
 								<img src="image/logo-haxor-small.png" style="position: relative; top:6px;" />

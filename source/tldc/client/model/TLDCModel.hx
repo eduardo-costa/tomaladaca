@@ -237,7 +237,8 @@ class TLDCModel extends TLDCResource
 	private function Parse():Void
 	{		
 		donations = [];		
-		TraverseTreeData(tree,null,ProcessNode);		
+		TraverseTreeData(tree, null, ProcessNode);
+		filter.Reset();
 	}
 	
 	/**

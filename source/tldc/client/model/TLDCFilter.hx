@@ -12,7 +12,15 @@ class Filters
 	 * @param	p_state
 	 * @return
 	 */
-	static public function ByState(p_state:Array<String>) : Donation->Bool { return function(d:Donation):Bool { return p_state.indexOf(d.state) >= 0; }	}
+	static public function ByState(p_tags:Array<String>) : Donation->Bool { return function(d:Donation):Bool { return p_tags.indexOf(d.state) >= 0; }	}
+	
+	/**
+	 * Filter the donations by position.
+	 * @param	p_state
+	 * @return
+	 */
+	static public function ByPosition(p_tags:Array<String>) : Donation->Bool { return function(d:Donation):Bool { return p_tags.indexOf(d.position) >= 0; }	}
+	
 }
 
 /**
@@ -24,13 +32,15 @@ class TLDCFilter extends TLDCResource
 
 	private var _m : TLDCModel;
 	
+	private var _r : Array<Donation>;
+	
 	/**
 	 * CTOR.
 	 */
 	public function new() 
 	{
 		super();
-		_m = app.model;
+		_m = app.model;		
 	}
 	
 	/**
@@ -41,22 +51,33 @@ class TLDCFilter extends TLDCResource
 	public function Filter(p_criteria : Donation->Bool):Array<Donation>
 	{
 		if (_m == null) return [];
-		if (p_criteria == null) return _m.donations;
+		if (p_criteria == null) return _r;
 		var l : Array<Donation> = [];
-		for (i in 0..._m.donations.length) if (p_criteria(_m.donations[i])) l.push(_m.donations[i]);
-		return l;
+		for (i in 0..._r.length) if (p_criteria(_r[i])) l.push(_r[i]);
+		_r = l;
+		return _r;
+	}
+	
+	/**
+	 * Resets the filter.
+	 */
+	public function Reset():Void
+	{
+		_r = _m.donations.copy();
 	}
 	
 	/**
 	 * Returns the sum of all money spent.
 	 * @return
 	 */
-	public function GetTotalDonations(p_criteria:Donation->Bool=null):Int
+	public function GetTotalDonations(p_use_all:Bool=false):Int
 	{
-		var l : Array<Donation> = Filter(p_criteria);
+		var l : Array <Donation> = p_use_all ? _m.donations : _r;		
 		var s : Int = 0;
 		for (i in 0...l.length) s += l[i].value;
 		return s;
 	}
+	
+	
 	
 }
