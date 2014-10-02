@@ -22,7 +22,7 @@ class HeaderView  extends TLDCResource
 	private function set_counter(v:Int):Int 
 	{ 
 		m_counter = Std.int(v); 		
-		m_counter_field.innerText = "R$ " + FormatNumber(m_counter);
+		m_counter_field.textContent = "R$ " + TLDC.FormatNumber(m_counter);
 		return m_counter;
 	}
 	private var m_counter : Int;

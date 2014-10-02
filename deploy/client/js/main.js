@@ -12928,6 +12928,8 @@ haxor.platform.html.Entry.OnWindowLoad = function(p_event) {
 		haxor.core.Console.Log("Graphics> DOM container not defined id[" + app_container_id + "] using 'body'.");
 		haxor.platform.html.Entry.m_application.m_container = window.document.body;
 	}
+	var cd = haxor.platform.html.Entry.m_application.m_container.style.display;
+	haxor.platform.html.Entry.m_application.m_container.style.display = "none";
 	haxor.graphics.GL.Initialize(haxor.platform.html.Entry.m_application);
 	haxor.graphics.GL.m_gl.Initialize(app_container_id);
 	haxor.graphics.GL.m_gl.CheckExtensions();
@@ -12935,8 +12937,9 @@ haxor.platform.html.Entry.OnWindowLoad = function(p_event) {
 	var stage = new haxor.dom.DOMStage(haxor.platform.html.Entry.m_application.m_container);
 	stage.Parse(haxor.platform.html.Entry.m_application.m_container);
 	haxe.Timer.delay(function() {
+		haxor.platform.html.Entry.m_application.m_container.style.display = cd;
 		window.document.body.style.removeProperty("display");
-	},500);
+	},200);
 	haxor.context.EngineContext.Build();
 	haxor.platform.html.Entry.m_input = new haxor.platform.html.input.HTMLInputHandler(app_input_id);
 	haxor.input.Input.m_handler = haxor.platform.html.Entry.m_input;
@@ -13631,6 +13634,21 @@ tldc.client.TLDC.__name__ = ["tldc","client","TLDC"];
 tldc.client.TLDC.main = function() {
 	haxor.platform.html.Entry.Initialize();
 };
+tldc.client.TLDC.FormatNumber = function(n) {
+	var s = n + "";
+	var r = "";
+	var _g1 = 0;
+	var _g = s.length;
+	while(_g1 < _g) {
+		var i = _g1++;
+		var ri = s.length - 1 - i;
+		if(i > 0) {
+			if(i % 3 == 0) r = "." + r;
+		}
+		r = s.charAt(ri) + r;
+	}
+	return r + ",00";
+};
 tldc.client.TLDC.__super__ = haxor.core.Application;
 tldc.client.TLDC.prototype = $extend(haxor.core.Application.prototype,{
 	Initialize: function() {
@@ -13665,21 +13683,6 @@ tldc.client.TLDCResource.prototype = $extend(haxor.core.Resource.prototype,{
 			var i = _g1++;
 			this.TraverseDOMStep(cl.item(i),cb);
 		}
-	}
-	,FormatNumber: function(n) {
-		var s = n + "";
-		var r = "";
-		var _g1 = 0;
-		var _g = s.length;
-		while(_g1 < _g) {
-			var i = _g1++;
-			var ri = s.length - 1 - i;
-			if(i > 0) {
-				if(i % 3 == 0) r = "." + r;
-			}
-			r = s.charAt(ri) + r;
-		}
-		return r + ",00";
 	}
 	,__class__: tldc.client.TLDCResource
 	,__properties__: $extend(haxor.core.Resource.prototype.__properties__,{get_app:"get_app"})
@@ -13728,7 +13731,7 @@ tldc.client.controller.FilterController.prototype = $extend(tldc.client.TLDCReso
 				var dv = vmax - vmin;
 				var r;
 				if(dv <= 0.0) r = 0.0; else r = (v1 - vmin) / dv;
-				this.get_app().view.section.region.SetRegionHeat(rg1.id,r);
+				this.get_app().view.section.region.SetRegionHeat(rg1.id,r,v1 | 0);
 			}
 			this.get_app().view.header.ChangeCounter(sum,1.0,0);
 			break;
@@ -14054,7 +14057,7 @@ tldc.client.view.HeaderView.prototype = $extend(tldc.client.TLDCResource.prototy
 	}
 	,set_counter: function(v) {
 		this.m_counter = v | 0;
-		this.m_counter_field.innerText = "R$ " + this.FormatNumber(this.m_counter);
+		this.m_counter_field.textContent = "R$ " + tldc.client.TLDC.FormatNumber(this.m_counter);
 		return this.m_counter;
 	}
 	,Show: function(p_delay) {
@@ -14210,19 +14213,22 @@ tldc.client.view.section.RegionSection.prototype = $extend(tldc.client.view.sect
 		}
 		return null;
 	}
-	,SetRegionHeat: function(p_id,p_heat) {
+	,SetRegionHeat: function(p_id,p_heat,p_value) {
 		var r = this.GetRegion(p_id);
 		if(r == null) return;
 		var c = haxor.math.Color.Sample(this.heat,p_heat);
 		haxor.core.Tween.Add(r,"color",c,0.5,null,haxor.math.Cubic.Out);
+		haxor.core.Tween.Add(r,"value",p_value,0.5,null,haxor.math.Cubic.Out);
+		haxor.core.Tween.Add(r,"ratio",p_heat,0.5,null,haxor.math.Cubic.Out);
 	}
-	,ResetColors: function() {
+	,ResetRegions: function() {
 		var c = new haxor.math.Color(1,1,1,1);
 		var _g1 = 0;
 		var _g = this.regions.length;
 		while(_g1 < _g) {
 			var i = _g1++;
 			var r = this.regions[i];
+			r.set_value(0);
 			haxor.core.Tween.Add(r,"color",c,0.5,null,haxor.math.Cubic.Out);
 		}
 	}
@@ -14235,18 +14241,37 @@ tldc.client.view.section.RegionSection.prototype = $extend(tldc.client.view.sect
 			var i = _g1++;
 			var it = l.item(i);
 			if(it.nodeName.toLowerCase() != "path") continue;
-			var r = new tldc.client.view.section.RegionState(it);
+			var id = it.id;
+			var rci = null;
+			var c = this.container.Find("charts");
+			var il = c.m_element.firstElementChild.nextElementSibling.children;
+			var _g3 = 0;
+			var _g2 = il.length;
+			while(_g3 < _g2) {
+				var i1 = _g3++;
+				var it1 = il.item(i1);
+				var iid = it1.firstElementChild.firstElementChild.textContent;
+				if(iid == id) {
+					rci = it1;
+					break;
+				}
+			}
+			console.log(rci);
+			var r = new tldc.client.view.section.RegionState(it,rci);
 			this.regions.push(r);
 		}
 	}
 	,__class__: tldc.client.view.section.RegionSection
 });
-tldc.client.view.section.RegionState = function(p_path) {
-	this.m_path = p_path;
-	this.id = this.m_path.id;
-	this.m_path.setAttribute("stroke-width","100px");
+tldc.client.view.section.RegionState = function(p_svg,p_chart) {
+	this.m_svg = p_svg;
+	this.m_chart = p_chart;
+	this.id = this.m_svg.id;
+	this.m_svg.setAttribute("stroke-width","100px");
 	this.m_color = new haxor.math.Color(1,1,1,1);
 	this.set_color(new haxor.math.Color(1,1,1,1));
+	this.set_value(0);
+	this.set_ratio(0);
 	var _g = this.id;
 	switch(_g) {
 	case "AC":
@@ -14342,12 +14367,32 @@ tldc.client.view.section.RegionState.prototype = {
 		this.m_color.SetColor(v);
 		var hex_fill = "#" + StringTools.hex(v.get_rgb(),6);
 		var hex_line = "#" + StringTools.hex(this.m_color.get_clone().Scale(0.6).get_rgb(),6);
-		this.m_path.setAttribute("fill",hex_fill);
-		this.m_path.setAttribute("stroke",hex_line);
+		this.m_svg.setAttribute("fill",hex_fill);
+		this.m_svg.setAttribute("stroke",hex_line);
+		return v;
+	}
+	,get_value: function() {
+		return this.m_value;
+	}
+	,set_value: function(v) {
+		this.m_value = v;
+		this.m_chart.firstElementChild.nextElementSibling.textContent = "R$ " + tldc.client.TLDC.FormatNumber(v | 0);
+		return v;
+	}
+	,get_ratio: function() {
+		return this.m_ratio;
+	}
+	,set_ratio: function(v) {
+		this.m_ratio = v;
+		this.m_chart.firstElementChild.nextElementSibling.style.width = Std["int"](haxor.math.Mathf.Lerp(0,190,v)) + "px";
+		var a = haxor.math.Mathf.Clamp01(v / 0.05);
+		var cc = this.m_color.get_clone();
+		cc.a = a * 0.5;
+		this.m_chart.firstElementChild.nextElementSibling.style.backgroundColor = "rgba(" + (cc.r * 255 | 0) + "," + (cc.g * 255 | 0) + "," + (cc.b * 255 | 0) + "," + cc.a + ")";
 		return v;
 	}
 	,__class__: tldc.client.view.section.RegionState
-	,__properties__: {set_color:"set_color",get_color:"get_color"}
+	,__properties__: {set_ratio:"set_ratio",get_ratio:"get_ratio",set_value:"set_value",get_value:"get_value",set_color:"set_color",get_color:"get_color"}
 };
 var $_, $fid = 0;
 function $bind(o,m) { if( m == null ) return null; if( m.__id__ == null ) m.__id__ = $fid++; var f; if( o.hx__closures__ == null ) o.hx__closures__ = {}; else f = o.hx__closures__[m.__id__]; if( f == null ) { f = function(){ return f.method.apply(f.scope, arguments); }; f.scope = o; f.method = m; o.hx__closures__[m.__id__] = f; } return f; }

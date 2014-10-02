@@ -18,6 +18,24 @@ class TLDC extends Application
 	static function main():Void { Entry.Initialize(); }
 
 	/**
+	 * Utility method.
+	 * @param	n
+	 * @return
+	 */
+	static public function FormatNumber(n:Int):String
+	{
+		var s : String = n + "";
+		var r : String = "";
+		for (i in 0...s.length)
+		{
+			var ri : Int = s.length - 1 - i;
+			if (i > 0) if ((i % 3) == 0) r = "." + r;
+			r = s.charAt(ri) + r;
+		}
+		return r+",00";
+	}
+	
+	/**
 	 * Container for all views.
 	 */
 	public var view : TLDCView;

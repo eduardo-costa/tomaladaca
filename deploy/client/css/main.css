@@ -162,6 +162,7 @@ a.clean
 .rci-fill
 {
 	position:relative;
+	white-space: nowrap;
 	float:left;
 	margin-top:1px;
 	padding-left:10px;

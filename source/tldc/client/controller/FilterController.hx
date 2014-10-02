@@ -62,7 +62,7 @@ class FilterController extends TLDCResource
 					var v : Float = f.GetTotalDonations();					
 					var dv : Float = (vmax - vmin);					
 					var r : Float = dv<=0.0 ? 0.0 : ((v - vmin) / dv);
-					app.view.section.region.SetRegionHeat(rg.id, r);
+					app.view.section.region.SetRegionHeat(rg.id, r,Std.int(v));
 				}
 				
 				app.view.header.ChangeCounter(cast sum, 1.0, 0);

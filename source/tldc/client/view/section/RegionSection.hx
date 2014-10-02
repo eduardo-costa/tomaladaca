@@ -4,6 +4,7 @@ import haxor.core.Tween;
 import haxor.dom.Container;
 import haxor.math.Color;
 import haxor.math.Easing.Cubic;
+import haxor.math.Mathf;
 import js.html.Element;
 import js.html.Event;
 import js.html.HTMLCollection;
@@ -116,23 +117,26 @@ class RegionSection extends TLDCSection
 	 * @param	p_id
 	 * @param	p_heat
 	 */
-	public function SetRegionHeat(p_id:String, p_heat : Float):Void
+	public function SetRegionHeat(p_id:String, p_heat : Float,p_value:Int):Void
 	{
 		var r : RegionState = GetRegion(p_id);
 		if (r == null) return;
 		var c : Color = Color.Sample(heat, p_heat);
 		Tween.Add(r, "color", c, 0.5, Cubic.Out);
+		Tween.Add(r, "value", p_value, 0.5, Cubic.Out);
+		Tween.Add(r, "ratio", p_heat, 0.5, Cubic.Out);
 	}
 	
 	/**
 	 * Resets the map colors to white.
 	 */
-	public function ResetColors():Void
+	public function ResetRegions():Void
 	{
 		var c : Color = Color.white;		
 		for (i in 0...regions.length)
 		{
 			var r : RegionState = regions[i];
+			r.value = 0;
 			Tween.Add(r, "color", c, 0.5, Cubic.Out);
 		}
 	}
@@ -149,7 +153,22 @@ class RegionSection extends TLDCSection
 		{
 			var it : Element = cast l.item(i);
 			if (it.nodeName.toLowerCase() != "path") continue;
-			var r : RegionState = new RegionState(it);			
+			var id : String = it.id;
+			var rci : Element = null;
+			var c : Container = cast container.Find("charts");
+			var il : HTMLCollection = c.element.firstElementChild.nextElementSibling.children;
+			for (i in 0...il.length)
+			{
+				var it : Element = cast il.item(i);
+				var iid : String = it.firstElementChild.firstElementChild.textContent;
+				if (iid == id)
+				{
+					rci = it;
+					break;
+				}
+			}
+			trace(rci);
+			var r : RegionState = new RegionState(it, rci);			
 			regions.push(r);
 		}
 		
@@ -182,31 +201,64 @@ class RegionState
 		m_color.SetColor(v);		
 		var hex_fill : String = "#" + StringTools.hex(v.rgb,6);
 		var hex_line : String = "#" + StringTools.hex(m_color.clone.Scale(0.6).rgb,6);
-		m_path.setAttribute("fill", hex_fill);
-		m_path.setAttribute("stroke", hex_line);
+		m_svg.setAttribute("fill", hex_fill);
+		m_svg.setAttribute("stroke", hex_line);			
 		return v; 
 	}
 	private var m_color : Color;
 	
+	/**
+	 * Donation value.
+	 */
+	public var value(get_value, set_value) : Int;
+	private function get_value():Int { return m_value; }
+	private function set_value(v:Int):Int 
+	{ 
+		m_value = v;
+		m_chart.firstElementChild.nextElementSibling.textContent = "R$ "+TLDC.FormatNumber(cast Mathf.Floor(v));
+		return v; 
+	}
+	private var m_value : Int;
 	
-	//value
+	/**
+	 * Donation Proportion.
+	 */
+	public var ratio(get_ratio, set_ratio) : Float;
+	private function get_ratio():Float { return m_ratio; }
+	private function set_ratio(v:Float):Float 
+	{ 
+		m_ratio = v;		
+		m_chart.firstElementChild.nextElementSibling.style.width = Mathf.LerpInt(0, 190, v) + "px";
+		var a : Float = Mathf.Clamp01(v / 0.05);
+		var cc : Color = m_color.clone;
+		cc.a = a*0.5;
+		m_chart.firstElementChild.nextElementSibling.style.backgroundColor = cc.css;		
+		return v; 
+	}
+	private var m_ratio : Float;
+	
 	
 	/**
 	 * Reference to the SVG path tag.
 	 */
-	private var m_path : Element;
+	private var m_svg : Element;
+	
+	private var m_chart : Element;
 
 	/**
 	 * Creates the state vector path container.
 	 * @param	p_path
 	 */
-	public function new(p_path : Element):Void
+	public function new(p_svg : Element,p_chart : Element):Void
 	{
-		m_path = p_path;
-		id = m_path.id;
-		m_path.setAttribute("stroke-width", "100px");
+		m_svg = p_svg;
+		m_chart = p_chart;
+		id = m_svg.id;
+		m_svg.setAttribute("stroke-width", "100px");
 		m_color = Color.white;
 		color = Color.white;		
+		value = 0;
+		ratio = 0;
 		switch(id)
 		{ 
 			case "AC": name = "Acre"; 
