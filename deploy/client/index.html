@@ -16,7 +16,7 @@
 	<meta property="fb:app_id" content="1489380857978375" />
 	<script src="js/main.js" verbose="0" application="tldc.client.TLDC"></script>
 	</head>
-<body style="margin: 0px; background-color:#333;">
+<body style="margin: 0px; background-color:#333; display:none;">
 	<div id="fb-root"></div>
 	<script>				
 		window.fbAsyncInit = function() { FB.init({ appId      : '1489380857978375',	 xfbml : true, version    : 'v2.1' }); };
@@ -38,36 +38,35 @@
 	  ga('send', 'pageview');
 	</script>
 
-	<strings style="display:none;">
+	<strings>
 		<entry key="bkg-pattern">image/bkg-pattern.png</entry>
 		<entry key="logo-header">image/logo-header.png</entry>
 	</strings>
 
 	<div id="haxor">
 		<container name="content" wh="100%">
-			<sprite name="background" src="image/senado.jpg" pxy="50%" xy="60%" alpha="0.33"></sprite>
+			<sprite name="background" src="image/senado_small.png" pxy="50%" xy="50%" sxy="2.1" alpha="0.33"></sprite>
 			<sprite name="pattern" src="@bkg-pattern" wh="100%" alpha="0.8" pattern></sprite>
 			
 			<container name="section" x="0%" wh="100%" alpha="0.0">
 				<container name="region" wh="100%" x="0%" style="overflow:hidden;">
-					<container name="map" h="100%" w="100%" px="50%" x="50%" margin="0 500 90 50">
+					<container name="map" h="100%" w="100%" px="50%" x="50%" margin="0 800 90 50">
 						
 					</container>						
-					<container name="filters" w="280" h="440" px="420" py="50%" x="100%" y="50%"  style="background-color: #eee; border-radius: 8px; overflow:hidden;">
-						<div class="panel-t1"><strong>Filtros</strong></div>
-						<!--<div class="panel-t2">Cargo</div>-->
+					<container name="filters" w="280" h="440" px="320" py="50%" x="100%" y="50%"  style="background-color: #eee; border-radius: 8px; overflow:hidden;">
+						<div class="panel-t1"><strong>Filtros</strong></div>						
 						<label class="panel-t2"><input class="t2-checkbox" type="checkbox" checked="true" name="all" />Para</label>
 						<div class="panel-form">
 							<div class="panel-column" style="float:left;">
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="presidente" />Presidente</label>
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox"  name="presidente" />Presidente</label>
 								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="governador" />Governador</label>
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="senador" />Senador</label>
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="deputado-federal" />Deputado Federal</label>
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox"  name="senador" />Senador</label>
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox"  name="deputado-federal" />Deputado Federal</label>
 							</div>
 							<div class="panel-column" style="float:right;">
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="deputado-estadual" />Deputado Estadual</label>							
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="deputado-distrital" />Deputado Distrital</label>							
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="comite" />Partido</label>							
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" name="deputado-estadual" />Deputado Estadual</label>							
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" name="deputado-distrital" />Deputado Distrital</label>							
+								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" name="comite" />Partido</label>							
 							</div>
 						</div>
 						<label class="panel-t2"><input class="t2-checkbox" type="checkbox" checked="true" name="all" />Fonte</label>
@@ -116,6 +115,41 @@
 							</div>
 						</div>
 					</container>
+					
+					<container name="states" w="250" h="465" px="630" py="50%" x="100%" y="50%"  style="background-color: #eee; border-radius: 8px; overflow:hidden;">
+						<div class="panel-t1"><strong>Valores</strong></div>												
+						<div class="panel-form">
+							<div class="region-chart-item"><span class="rci-label"><strong>AC</strong></span><div class="rci-fill">R$0,00</div></div>
+							<div class="region-chart-item"><span class="rci-label"><strong>AL</strong></span><div class="rci-fill">R$0,00</div></div>
+							<div class="region-chart-item"><span class="rci-label"><strong>AP</strong></span><div class="rci-fill">R$0,00</div></div>
+							<div class="region-chart-item"><span class="rci-label"><strong>AM</strong></span><div class="rci-fill">R$0,00</div></div>
+							<div class="region-chart-item"><span class="rci-label"><strong>BA</strong></span><div class="rci-fill">R$0,00</div></div>
+							<div class="region-chart-item"><span class="rci-label"><strong>CE</strong></span><div class="rci-fill">R$0,00</div></div>
+							<div class="region-chart-item"><span class="rci-label"><strong>DF</strong></span><div class="rci-fill">R$0,00</div></div>
+							<div class="region-chart-item"><span class="rci-label"><strong>ES</strong></span><div class="rci-fill">R$0,00</div></div>
+							<div class="region-chart-item"><span class="rci-label"><strong>GO</strong></span><div class="rci-fill">R$0,00</div></div>
+							<div class="region-chart-item"><span class="rci-label"><strong>MA</strong></span><div class="rci-fill">R$0,00</div></div>
+							<div class="region-chart-item"><span class="rci-label"><strong>MT</strong></span><div class="rci-fill">R$0,00</div></div>
+							<div class="region-chart-item"><span class="rci-label"><strong>MS</strong></span><div class="rci-fill">R$0,00</div></div>
+							<div class="region-chart-item"><span class="rci-label"><strong>MG</strong></span><div class="rci-fill">R$0,00</div></div>
+							<div class="region-chart-item"><span class="rci-label"><strong>PA</strong></span><div class="rci-fill">R$0,00</div></div>
+							<div class="region-chart-item"><span class="rci-label"><strong>PB</strong></span><div class="rci-fill">R$0,00</div></div>
+							<div class="region-chart-item"><span class="rci-label"><strong>PR</strong></span><div class="rci-fill">R$0,00</div></div>
+							<div class="region-chart-item"><span class="rci-label"><strong>PE</strong></span><div class="rci-fill">R$0,00</div></div>
+							<div class="region-chart-item"><span class="rci-label"><strong>PI</strong></span><div class="rci-fill">R$0,00</div></div>
+							<div class="region-chart-item"><span class="rci-label"><strong>RJ</strong></span><div class="rci-fill">R$0,00</div></div>
+							<div class="region-chart-item"><span class="rci-label"><strong>RN</strong></span><div class="rci-fill">R$0,00</div></div>
+							<div class="region-chart-item"><span class="rci-label"><strong>RS</strong></span><div class="rci-fill">R$0,00</div></div>
+							<div class="region-chart-item"><span class="rci-label"><strong>RO</strong></span><div class="rci-fill">R$0,00</div></div>
+							<div class="region-chart-item"><span class="rci-label"><strong>RR</strong></span><div class="rci-fill">R$0,00</div></div>
+							<div class="region-chart-item"><span class="rci-label"><strong>SC</strong></span><div class="rci-fill">R$0,00</div></div>
+							<div class="region-chart-item"><span class="rci-label"><strong>SP</strong></span><div class="rci-fill">R$0,00</div></div>
+							<div class="region-chart-item"><span class="rci-label"><strong>SE</strong></span><div class="rci-fill">R$0,00</div></div>
+							<div class="region-chart-item"><span class="rci-label"><strong>TO</strong></span><div class="rci-fill">R$0,00</div></div>
+							
+						</div>							
+					</container>
+					
 				</container>				
 			</container>
 			
@@ -148,12 +182,12 @@
 				</container>
 			</container>
 			
-			<container name="header" w="100%" h="70px" py="100%" style="background-color: #eee;">
+			<container name="header" w="100%" h="50px" py="100%" style="background-color: #eee;">
 				<sprite name="pattern" src="@bkg-pattern" wh="100%" alpha="0.3" pattern></sprite>
 				<sprite name="pattern" src="@logo-header" py="50%" y="50%" x="10"></sprite>
 				<div class="fb-like" data-href="http://labs.thelaborat.org/tomaladaca/" data-layout="button_count" data-action="like" data-show-faces="false" data-share="true"></div>
 				<!--<fb:like href="http://labs.thelaborat.org/tomaladaca/" layout="button_count" action="like" show_faces="false" share="true"></fb:like>-->
-				<div style="position: absolute; top: 17px;right: 140px;">
+				<div style="position: absolute; top: 5px;right: 140px;">
 					<span id="header-money-counter" class="header-money">R$ 0,00</span>
 					<span class="header-money-small">em doações em 2014</span>
 				</div>

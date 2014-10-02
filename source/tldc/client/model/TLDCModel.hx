@@ -83,13 +83,16 @@ class Donation
 		to	 = p_to;
 		party = p_party;
 		state = p_state;
-		value = p_value;
+		value = p_value;		
 		positionName = p_position;
 		position = p_position;		
 		position = StringTools.replace(position, " ", "-").toLowerCase();
-		
-		if (position.indexOf("comitê") >= 0) position = "comite";
+		if (position == "presidente") state = "DF";
+		if (state == "BR") state = "DF";
+		if (position.indexOf("comitê") >= 0) position = "comite";		
 		tags = [type, donor, party, state, position];		
+		
+		
 	}
 }
 
@@ -120,9 +123,16 @@ class TLDCModel extends TLDCResource
 	public var positions : Array<String>;
 	
 	/**
+	 * List of states.
+	 */
+	public var states : Array<String>;
+	
+	/**
 	 * Reference to the filter class.
 	 */
 	public var filter : TLDCFilter;
+	
+	
 	
 	/**
 	 * Current donation type in the parse process.
@@ -205,6 +215,7 @@ class TLDCModel extends TLDCResource
 		}
 		else
 		{
+			
 			if (t.indexOf("fundo") >= 0) 	{ m_current_type = "fundo"; return; }
 			if (t.indexOf("empresas") >= 0) { m_current_type = "empresa"; return; }
 			if (t.indexOf("pessoa") >= 0) 	{ m_current_type = "pessoa"; return; }
@@ -263,13 +274,15 @@ class TLDCModel extends TLDCResource
 	{		
 		donations = [];		
 		TraverseTreeData(tree, null, ProcessNode);
+		var sum :Int = 0;
+		for (i in 0...donations.length) sum += donations[i].value;
+		trace(">>>>>>>> " + sum);
 		filter.Reset();
 		parties = [];
 		positions = [];
 		//var s : String = "";
 		for (i in 0...donations.length)
-		{			
-			if (donations[i].position == "presidente") trace(donations[i]);
+		{	
 			var s :String;
 			s = donations[i].party;
 			if (s != "") if (parties.indexOf(s) < 0) parties.push(s);

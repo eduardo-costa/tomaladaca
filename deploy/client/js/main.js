@@ -4893,8 +4893,8 @@ haxor.dom.DOMEntity.prototype = $extend(haxor.core.Resource.prototype,{
 		var e = this.m_element;
 		var m = this.get_layout().m_margin;
 		this.get_layout().Update();
-		var px = this.m_x - this.m_px + m.get_xMin();
-		var py = this.m_y - this.m_py + m.get_yMin();
+		var px = haxor.math.Mathf.Floor(this.m_x - this.m_px + m.get_xMin());
+		var py = haxor.math.Mathf.Floor(this.m_y - this.m_py + m.get_yMin());
 		var ox = px + this.m_px;
 		var oy = py + this.m_py;
 		var vdn = this.get_application().get_vendor();
@@ -12928,8 +12928,6 @@ haxor.platform.html.Entry.OnWindowLoad = function(p_event) {
 		haxor.core.Console.Log("Graphics> DOM container not defined id[" + app_container_id + "] using 'body'.");
 		haxor.platform.html.Entry.m_application.m_container = window.document.body;
 	}
-	var cd = haxor.platform.html.Entry.m_application.m_container.style.display;
-	haxor.platform.html.Entry.m_application.m_container.style.display = "none";
 	haxor.graphics.GL.Initialize(haxor.platform.html.Entry.m_application);
 	haxor.graphics.GL.m_gl.Initialize(app_container_id);
 	haxor.graphics.GL.m_gl.CheckExtensions();
@@ -12937,8 +12935,8 @@ haxor.platform.html.Entry.OnWindowLoad = function(p_event) {
 	var stage = new haxor.dom.DOMStage(haxor.platform.html.Entry.m_application.m_container);
 	stage.Parse(haxor.platform.html.Entry.m_application.m_container);
 	haxe.Timer.delay(function() {
-		haxor.platform.html.Entry.m_application.m_container.style.display = cd;
-	},100);
+		window.document.body.style.removeProperty("display");
+	},500);
 	haxor.context.EngineContext.Build();
 	haxor.platform.html.Entry.m_input = new haxor.platform.html.input.HTMLInputHandler(app_input_id);
 	haxor.input.Input.m_handler = haxor.platform.html.Entry.m_input;
@@ -13702,6 +13700,7 @@ tldc.client.controller.FilterController.prototype = $extend(tldc.client.TLDCReso
 			var t = 0.0;
 			var vmin = 10000000000000000;
 			var vmax = -vmin;
+			var sum = 0;
 			var tags = this.get_app().view.section.region.tags;
 			f.Reset();
 			f.Filter(tldc.client.model.Filters.ByTags(tags,true));
@@ -13712,25 +13711,26 @@ tldc.client.controller.FilterController.prototype = $extend(tldc.client.TLDCReso
 				var i = _g1++;
 				var rg = rl[i];
 				f.Load();
-				f.Filter(tldc.client.model.Filters.ByState([rg.id,"BR"]));
+				f.Filter(tldc.client.model.Filters.ByState([rg.id]));
 				var v = f.GetTotalDonations();
 				vmin = Math.min(vmin,v);
 				vmax = Math.max(vmax,v);
+				sum += v;
 			}
-			console.log(vmin + " " + vmax);
 			var _g11 = 0;
 			var _g2 = rl.length;
 			while(_g11 < _g2) {
 				var i1 = _g11++;
 				var rg1 = rl[i1];
 				f.Load();
-				f.Filter(tldc.client.model.Filters.ByState([rg1.id,"BR"]));
+				f.Filter(tldc.client.model.Filters.ByState([rg1.id]));
 				var v1 = f.GetTotalDonations();
 				var dv = vmax - vmin;
 				var r;
 				if(dv <= 0.0) r = 0.0; else r = (v1 - vmin) / dv;
 				this.get_app().view.section.region.SetRegionHeat(rg1.id,r);
 			}
+			this.get_app().view.header.ChangeCounter(sum,1.0,0);
 			break;
 		}
 	}
@@ -13888,6 +13888,8 @@ tldc.client.model.Donation = function(p_type,p_donor,p_to,p_position,p_party,p_s
 	this.positionName = p_position;
 	this.position = p_position;
 	this.position = StringTools.replace(this.position," ","-").toLowerCase();
+	if(this.position == "presidente") this.state = "DF";
+	if(this.state == "BR") this.state = "DF";
 	if(this.position.indexOf("comitê") >= 0) this.position = "comite";
 	this.tags = [this.type,this.donor,this.party,this.state,this.position];
 };
@@ -13980,20 +13982,27 @@ tldc.client.model.TLDCModel.prototype = $extend(tldc.client.TLDCResource.prototy
 	,Parse: function() {
 		this.donations = [];
 		this.TraverseTreeData(this.tree,null,$bind(this,this.ProcessNode));
-		this.filter.Reset();
-		this.parties = [];
-		this.positions = [];
+		var sum = 0;
 		var _g1 = 0;
 		var _g = this.donations.length;
 		while(_g1 < _g) {
 			var i = _g1++;
-			if(this.donations[i].position == "presidente") console.log(this.donations[i]);
+			sum += this.donations[i].value;
+		}
+		console.log(">>>>>>>> " + sum);
+		this.filter.Reset();
+		this.parties = [];
+		this.positions = [];
+		var _g11 = 0;
+		var _g2 = this.donations.length;
+		while(_g11 < _g2) {
+			var i1 = _g11++;
 			var s;
-			s = this.donations[i].party;
+			s = this.donations[i1].party;
 			if(s != "") {
 				if(HxOverrides.indexOf(this.parties,s,0) < 0) this.parties.push(s);
 			}
-			s = this.donations[i].position;
+			s = this.donations[i1].position;
 			if(s != "") {
 				if(HxOverrides.indexOf(this.positions,s,0) < 0) this.positions.push(s);
 			}
@@ -14046,7 +14055,7 @@ tldc.client.view.HeaderView.prototype = $extend(tldc.client.TLDCResource.prototy
 	,set_counter: function(v) {
 		this.m_counter = v | 0;
 		this.m_counter_field.innerText = "R$ " + this.FormatNumber(this.m_counter);
-		return v;
+		return this.m_counter;
 	}
 	,Show: function(p_delay) {
 		if(p_delay == null) p_delay = 0.0;
@@ -14203,6 +14212,7 @@ tldc.client.view.section.RegionSection.prototype = $extend(tldc.client.view.sect
 	}
 	,SetRegionHeat: function(p_id,p_heat) {
 		var r = this.GetRegion(p_id);
+		if(r == null) return;
 		var c = haxor.math.Color.Sample(this.heat,p_heat);
 		haxor.core.Tween.Add(r,"color",c,0.5,null,haxor.math.Cubic.Out);
 	}

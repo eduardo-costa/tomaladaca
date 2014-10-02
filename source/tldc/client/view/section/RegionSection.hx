@@ -119,6 +119,7 @@ class RegionSection extends TLDCSection
 	public function SetRegionHeat(p_id:String, p_heat : Float):Void
 	{
 		var r : RegionState = GetRegion(p_id);
+		if (r == null) return;
 		var c : Color = Color.Sample(heat, p_heat);
 		Tween.Add(r, "color", c, 0.5, Cubic.Out);
 	}
@@ -186,6 +187,9 @@ class RegionState
 		return v; 
 	}
 	private var m_color : Color;
+	
+	
+	//value
 	
 	/**
 	 * Reference to the SVG path tag.
