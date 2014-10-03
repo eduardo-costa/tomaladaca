@@ -343,10 +343,42 @@ class TLDCModel extends TLDCResource
 			
 		}
 		
+		for (i in 0...companies.length)
+		{
+			var s : String = companies[i];
+			
+			if (s.indexOf("-") >= 0) companies[i] = s.split("-")[0];
+			
+			companies[i] = Compact(companies[i], "Distribuidora", "Distrib");
+			companies[i] = Compact(companies[i], "Recursos Humanos", "RH");
+			companies[i] = Compact(companies[i], "Sistemas", "Sist");
+			companies[i] = Compact(companies[i], "Sistema", "Sist");
+			companies[i] = Compact(companies[i], "Administração", "Admin");
+			companies[i] = Compact(companies[i], "Companhia", "Cia");
+			companies[i] = Compact(companies[i], "Mobiliarios", "Mob");
+			companies[i] = Compact(companies[i], "Rodoviárias", "Rod");
+			companies[i] = Compact(companies[i], "Alimentos", "Alim");
+			companies[i] = Compact(companies[i], "Servicos", "Serv");
+			companies[i] = Compact(companies[i], "Minas Gerais", "MG");
+			companies[i] = Compact(companies[i], "Comercio", "Com");
+			companies[i] = Compact(companies[i], "Trabalho", "Trab");
+			companies[i] = Compact(companies[i], "Federação", "Fed");
+			companies[i] = Compact(companies[i], "Telecomunicacao", "Telecom");
+			companies[i] = Compact(companies[i], "Imobiliarios", "Imob");
+			companies[i] = Compact(companies[i], "Industria", "Ind");
+			trace(companies[i]);
+		}
+		
 		companies.sort(function(a:String, b:String):Int { if (a == "Outros") return 1; if (b == "Outros") return -1; return a < b ? -1 : 1; } );
 		persons.sort(function(a:String, b:String):Int { if (a == "Outros") return 1; if (b == "Outros") return -1; return a < b ? -1 : 1; } );
 		receptors.sort(function(a:String, b:String):Int { if (a == "Outros") return 1; if (b == "Outros") return -1; return a < b ? -1 : 1; } );
 		parties.sort(function(a:String, b:String):Int { if (a == "Outros") return 1; if (b == "Outros") return -1; return a < b ? -1 : 1; } );
+	}
+	
+	private function Compact(s:String, f:String, t:String):String
+	{
+		if (s.indexOf(f) >= 0) return StringTools.replace(s, f, t+".");
+		return s;
 	}
 	
 	/**

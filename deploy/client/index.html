@@ -58,10 +58,10 @@
 								<span class="heat-panel-field"><strong>R$ 999.999.999,00</strong></span>
 							</div>
 					</container>
-					<container name="filters" w="828" h="85" px="50%" x="50%" y="65" style="background-color: #eee; border-radius: 8px; overflow:hidden;">
+					<container name="filters" w="460" h="85" px="50%" x="50%" y="65" style="background-color: #eee; border-radius: 8px; overflow:hidden;">
 						<div class="panel-t1"><strong>Filtros</strong></div>
 						<div id="l0" style="width:100%; height: 4px;">
-							<div class="panel-t2" style="float:left">Para</div>
+							<div class="select-t2" style="float:left">Para</div>
 							<select id="select-position" class="panel-select">						  							  
 							  <option value="all">Todos</option>	
 							  <option value="presidente">Presidente</option>
@@ -73,7 +73,7 @@
 							  <option value="comite">Partido</option>
 							  <option value="none">Nenhum</option>
 							</select>
-							<div class="panel-t2" style="float:left">Fonte</div>
+							<div class="select-t2" style="float:left">Fonte</div>
 							<select id="select-type" class="panel-select">
 							  <option value="all">Todos</option>						  
 							  <option value="empresa">Empresas</option>
@@ -82,69 +82,72 @@
 							  <option value="none">Nenhum</option>
 							</select>
 							
-							<div class="panel-t2" style="float:left">Empresa</div>
+							<div class="select-t2" style="float:left">Empresa</div>
 							<select id="select-company" class="panel-select"></select>
 							
 						</div>
 						<br/>			
 						<div id="l1" style="width:100%; height: 4px;">
 							
-							<div class="panel-t2" style="float:left">Partido</div>
+							<div class="select-t2" style="float:left;">Partido</div>
 							<select id="select-party" class="panel-select"></select>
 							
-							
-							<div class="panel-t2" style="float:left">Pessoa</div>
+							<div class="select-t2" style="float:left">Pessoa</div>
 							<select id="select-person" class="panel-select"></select>
 							
-							<div class="panel-t2" style="float:left">Beneficiado</div>
-							<select id="select-receptor" class="panel-select"></select>					
-							
+							<div class="select-t2" style="float:left">Beneficiado</div>
+							<select id="select-receptor" class="panel-select"></select>										
 							
 							
 						</div>
 						
 					</container>
 					
-					<container name="tags" w="360" h="450" px="385" py="50%" x="100%" y="50%"  style="background-color: #eee; border-radius: 8px; overflow:hidden;">
+					<container name="tags" w="360" h="450" px="385" py="500" x="100%" y="100%"  style="background-color: #eee; border-radius: 8px; overflow:hidden;">
 						<div class="panel-t1"><strong>Excluídos</strong><button id="button-tag-clear">Limpar</button></div>
 						<div id="tag-container" style="position:relative; top: 0px; margin-left: 2px; margin-right: 2px; margin-bottom: 10px; height:415px; overflow-y:scroll;"></div>
 					</container>
 					
-					<container name="charts" w="160" h="465" py="515" x="25" y="100%"  style="background-color: #eee; border-radius: 8px; overflow:hidden;">
+					<container name="charts" w="330" h="265" py="310" x="25" y="100%"  style="background-color: #eee; border-radius: 8px; overflow:hidden;">
 						<div class="panel-t1"><strong>Valores</strong></div>												
 						<div class="panel-form">
-							<div class="region-chart-item"><span class="rci-label"><strong>AC</strong></span><div class="rci-fill">R$0,00</div></div>
-							<div class="region-chart-item"><span class="rci-label"><strong>AL</strong></span><div class="rci-fill">R$0,00</div></div>
-							<div class="region-chart-item"><span class="rci-label"><strong>AP</strong></span><div class="rci-fill">R$0,00</div></div>
-							<div class="region-chart-item"><span class="rci-label"><strong>AM</strong></span><div class="rci-fill">R$0,00</div></div>
-							<div class="region-chart-item"><span class="rci-label"><strong>BA</strong></span><div class="rci-fill">R$0,00</div></div>
-							<div class="region-chart-item"><span class="rci-label"><strong>CE</strong></span><div class="rci-fill">R$0,00</div></div>
-							<div class="region-chart-item"><span class="rci-label"><strong>DF</strong></span><div class="rci-fill">R$0,00</div></div>
-							<div class="region-chart-item"><span class="rci-label"><strong>ES</strong></span><div class="rci-fill">R$0,00</div></div>
-							<div class="region-chart-item"><span class="rci-label"><strong>GO</strong></span><div class="rci-fill">R$0,00</div></div>
-							<div class="region-chart-item"><span class="rci-label"><strong>MA</strong></span><div class="rci-fill">R$0,00</div></div>
-							<div class="region-chart-item"><span class="rci-label"><strong>MT</strong></span><div class="rci-fill">R$0,00</div></div>
-							<div class="region-chart-item"><span class="rci-label"><strong>MS</strong></span><div class="rci-fill">R$0,00</div></div>
-							<div class="region-chart-item"><span class="rci-label"><strong>MG</strong></span><div class="rci-fill">R$0,00</div></div>
-							<div class="region-chart-item"><span class="rci-label"><strong>PA</strong></span><div class="rci-fill">R$0,00</div></div>
-							<div class="region-chart-item"><span class="rci-label"><strong>PB</strong></span><div class="rci-fill">R$0,00</div></div>
-							<div class="region-chart-item"><span class="rci-label"><strong>PR</strong></span><div class="rci-fill">R$0,00</div></div>
-							<div class="region-chart-item"><span class="rci-label"><strong>PE</strong></span><div class="rci-fill">R$0,00</div></div>
-							<div class="region-chart-item"><span class="rci-label"><strong>PI</strong></span><div class="rci-fill">R$0,00</div></div>
-							<div class="region-chart-item"><span class="rci-label"><strong>RJ</strong></span><div class="rci-fill">R$0,00</div></div>
-							<div class="region-chart-item"><span class="rci-label"><strong>RN</strong></span><div class="rci-fill">R$0,00</div></div>
-							<div class="region-chart-item"><span class="rci-label"><strong>RS</strong></span><div class="rci-fill">R$0,00</div></div>
-							<div class="region-chart-item"><span class="rci-label"><strong>RO</strong></span><div class="rci-fill">R$0,00</div></div>
-							<div class="region-chart-item"><span class="rci-label"><strong>RR</strong></span><div class="rci-fill">R$0,00</div></div>
-							<div class="region-chart-item"><span class="rci-label"><strong>SC</strong></span><div class="rci-fill">R$0,00</div></div>
-							<div class="region-chart-item"><span class="rci-label"><strong>SP</strong></span><div class="rci-fill">R$0,00</div></div>
-							<div class="region-chart-item"><span class="rci-label"><strong>SE</strong></span><div class="rci-fill">R$0,00</div></div>
-							<div class="region-chart-item"><span class="rci-label"><strong>TO</strong></span><div class="rci-fill">R$0,00</div></div>
+							<div id="chart-item-list-0" style="float:left; width:140px;">
+								<div class="region-chart-item"><span class="rci-label"><strong>AC</strong></span><div class="rci-fill">R$0,00</div></div>
+								<div class="region-chart-item"><span class="rci-label"><strong>AL</strong></span><div class="rci-fill">R$0,00</div></div>
+								<div class="region-chart-item"><span class="rci-label"><strong>AP</strong></span><div class="rci-fill">R$0,00</div></div>
+								<div class="region-chart-item"><span class="rci-label"><strong>AM</strong></span><div class="rci-fill">R$0,00</div></div>
+								<div class="region-chart-item"><span class="rci-label"><strong>BA</strong></span><div class="rci-fill">R$0,00</div></div>
+								<div class="region-chart-item"><span class="rci-label"><strong>CE</strong></span><div class="rci-fill">R$0,00</div></div>
+								<div class="region-chart-item"><span class="rci-label"><strong>DF</strong></span><div class="rci-fill">R$0,00</div></div>
+								<div class="region-chart-item"><span class="rci-label"><strong>ES</strong></span><div class="rci-fill">R$0,00</div></div>
+								<div class="region-chart-item"><span class="rci-label"><strong>GO</strong></span><div class="rci-fill">R$0,00</div></div>
+								<div class="region-chart-item"><span class="rci-label"><strong>MA</strong></span><div class="rci-fill">R$0,00</div></div>
+								<div class="region-chart-item"><span class="rci-label"><strong>MT</strong></span><div class="rci-fill">R$0,00</div></div>
+								<div class="region-chart-item"><span class="rci-label"><strong>MS</strong></span><div class="rci-fill">R$0,00</div></div>
+								<div class="region-chart-item"><span class="rci-label"><strong>MG</strong></span><div class="rci-fill">R$0,00</div></div>
+								<div class="region-chart-item"><span class="rci-label"><strong>PA</strong></span><div class="rci-fill">R$0,00</div></div>
+							</div>
+							
+							<div id="chart-item-list-1" style="float:left;width:140px;">
+								<div class="region-chart-item"><span class="rci-label"><strong>PB</strong></span><div class="rci-fill">R$0,00</div></div>
+								<div class="region-chart-item"><span class="rci-label"><strong>PR</strong></span><div class="rci-fill">R$0,00</div></div>
+								<div class="region-chart-item"><span class="rci-label"><strong>PE</strong></span><div class="rci-fill">R$0,00</div></div>
+								<div class="region-chart-item"><span class="rci-label"><strong>PI</strong></span><div class="rci-fill">R$0,00</div></div>
+								<div class="region-chart-item"><span class="rci-label"><strong>RJ</strong></span><div class="rci-fill">R$0,00</div></div>
+								<div class="region-chart-item"><span class="rci-label"><strong>RN</strong></span><div class="rci-fill">R$0,00</div></div>
+								<div class="region-chart-item"><span class="rci-label"><strong>RS</strong></span><div class="rci-fill">R$0,00</div></div>
+								<div class="region-chart-item"><span class="rci-label"><strong>RO</strong></span><div class="rci-fill">R$0,00</div></div>
+								<div class="region-chart-item"><span class="rci-label"><strong>RR</strong></span><div class="rci-fill">R$0,00</div></div>
+								<div class="region-chart-item"><span class="rci-label"><strong>SC</strong></span><div class="rci-fill">R$0,00</div></div>
+								<div class="region-chart-item"><span class="rci-label"><strong>SP</strong></span><div class="rci-fill">R$0,00</div></div>
+								<div class="region-chart-item"><span class="rci-label"><strong>SE</strong></span><div class="rci-fill">R$0,00</div></div>
+								<div class="region-chart-item"><span class="rci-label"><strong>TO</strong></span><div class="rci-fill">R$0,00</div></div>
+							</div>
 							
 						</div>							
 					</container>
 					
-					<container name="info" w="380" h="215" py="0" x="25" y="165"  style="background-color: #eee; border-radius: 8px; overflow:hidden;">
+					<container name="info" w="380" h="215" py="0" x="25" y="55"  style="background-color: #eee; border-radius: 8px; overflow:hidden;">
 						<div class="panel-t1"><strong>Informações</strong></div>												
 						<div class="panel-form">
 							<span class="info-topic"><strong>Valores:</strong></span><span class="info-text">Doações destinados a políticos atuando no estado.</span><br/>

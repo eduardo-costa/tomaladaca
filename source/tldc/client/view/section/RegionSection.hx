@@ -304,8 +304,23 @@ class RegionSection extends TLDCSection
 			if (it.nodeName.toLowerCase() != "path") continue;
 			var id : String = it.id;
 			var rci : Element = null;
-			var c : Container = cast container.Find("charts");
-			var il : HTMLCollection = c.element.firstElementChild.nextElementSibling.children;
+			var c : Container = cast container.Find("charts");			
+			var il : HTMLCollection;
+			
+			
+			il = Browser.document.getElementById("chart-item-list-0").children;
+			for (i in 0...il.length)
+			{
+				var it : Element = cast il.item(i);
+				var iid : String = it.firstElementChild.firstElementChild.textContent;
+				if (iid == id)
+				{
+					rci = it;
+					break;
+				}
+			}
+			
+			il = Browser.document.getElementById("chart-item-list-1").children;
 			for (i in 0...il.length)
 			{
 				var it : Element = cast il.item(i);

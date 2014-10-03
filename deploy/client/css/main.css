@@ -99,6 +99,21 @@ a.clean
 	display: block;
 }
 
+.select-t2
+{
+	position: relative;
+	font-family: "Roboto","Verdana";
+	font-size: 11px;
+	color: #333;	
+	margin-top: 3px;
+	margin-bottom: 2px;
+	padding-left: 8px;
+	padding-bottom: 2px;
+	padding-right: 3px;
+	width: 60px;
+	display: block;
+}
+
 /*container for the panel inputs*/
 .panel-form
 {
@@ -123,6 +138,7 @@ a.clean
 	font-family: "Roboto","Verdana";
 	font-size: 10px;	
 	color: #333;	
+	width:80px;
 }
 
 .panel-tag
