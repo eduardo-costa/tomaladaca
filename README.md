@@ -9,7 +9,7 @@ http://labs.thelaborat.org/tomaladaca/
 
 ## Sumário
 
-Versão com mais filtros e diferentes visualizações dos dados disponibilizados na matéria do jornal Folha de São Paulo.  
+Versão com mais filtros e diferentes visualizações dos dados disponibilizados na matéria do jornal Estadão.  
 Fonte: http://estadaodados.com/doacoes2014/#.VCbjBPldUwD  
 Dados: http://estadaodados.com/doacoes2014/dados/doacoes2014.json  
 
