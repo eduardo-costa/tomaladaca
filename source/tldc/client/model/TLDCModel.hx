@@ -69,6 +69,11 @@ class Donation
 	public var tags : Array<String>;
 	
 	/**
+	 * All possible tags.
+	 */
+	public var all : Array<String>;
+	
+	/**
 	 * Creates a new Donation entry.
 	 * @param	p_from
 	 * @param	p_to
@@ -81,16 +86,28 @@ class Donation
 		type = p_type;		
 		donor = p_donor;
 		to	 = p_to;
+		var i0 : Int = to.indexOf("(");		
+		if (i0 >= 0)
+		{
+			to = to.substring(0, i0);
+			to = StringTools.trim(to);
+		}		
 		party = p_party;
 		state = p_state;
 		value = p_value;		
+		
 		positionName = p_position;
 		position = p_position;		
 		position = StringTools.replace(position, " ", "-").toLowerCase();
 		if (position == "presidente") state = "DF";
 		if (state == "BR") state = "DF";
 		if (position.indexOf("comitê") >= 0) position = "comite";		
-		tags = [type, donor, party, state, position];		
+		
+		to += " (" + party;
+		to += state == "" ? "" : ("/" + state);
+		to +=  ")";
+		
+		tags = [type, donor, party, state, position,donor,to];		
 		
 		
 	}
@@ -113,6 +130,11 @@ class TLDCModel extends TLDCResource
 	public var donations : Array<Donation>;
 	
 	/**
+	 * List of donation origins.
+	 */
+	public var origins : Array<String>;
+	
+	/**
 	 * List of political parties.
 	 */
 	public var parties : Array<String>;
@@ -121,6 +143,26 @@ class TLDCModel extends TLDCResource
 	 * List of political positions.
 	 */
 	public var positions : Array<String>;
+	
+	/**
+	 * List of donation receptors.
+	 */
+	public var receptors : Array<String>;
+	
+	/**
+	 * Donor companies
+	 */
+	public var companies : Array<String>;
+	
+	/**
+	 * Donor persons.
+	 */
+	public var persons : Array<String>;
+	
+	/**
+	 * List of candidates.
+	 */
+	public var candidates : Array<String>;
 	
 	/**
 	 * List of states.
@@ -276,20 +318,35 @@ class TLDCModel extends TLDCResource
 		TraverseTreeData(tree, null, ProcessNode);
 		var sum :Int = 0;
 		for (i in 0...donations.length) sum += donations[i].value;
-		trace(">>>>>>>> " + sum);
+		
 		filter.Reset();
 		parties = [];
 		positions = [];
+		receptors = [];
+		companies = [];
+		parties = [];
+		persons = [];
+		candidates = [];
+		origins = [];
 		//var s : String = "";
 		for (i in 0...donations.length)
 		{	
 			var s :String;
-			s = donations[i].party;
-			if (s != "") if (parties.indexOf(s) < 0) parties.push(s);
-			s = donations[i].position;
-			if (s != "") if (positions.indexOf(s) < 0) positions.push(s);
+			var t : String = donations[i].type;
+			s = donations[i].party;		if (s != "") if (parties.indexOf(s) < 0) parties.push(s);
+			s = donations[i].position;	if (s != "") if (positions.indexOf(s) < 0) positions.push(s);
+			s = donations[i].to;		if (s != "") if (receptors.indexOf(s) < 0) receptors.push(s);
+			s = donations[i].type;		if (s != "") if (origins.indexOf(s) < 0) origins.push(s);
+			s = donations[i].donor;		
+			if (t == "empresa") if (s != "") if (companies.indexOf(s) < 0) companies.push(s);
+			if (t == "pessoa")  if (s != "") if (persons.indexOf(s) < 0) persons.push(s);
+			
 		}
 		
+		companies.sort(function(a:String, b:String):Int { if (a == "Outros") return 1; if (b == "Outros") return -1; return a < b ? -1 : 1; } );
+		persons.sort(function(a:String, b:String):Int { if (a == "Outros") return 1; if (b == "Outros") return -1; return a < b ? -1 : 1; } );
+		receptors.sort(function(a:String, b:String):Int { if (a == "Outros") return 1; if (b == "Outros") return -1; return a < b ? -1 : 1; } );
+		parties.sort(function(a:String, b:String):Int { if (a == "Outros") return 1; if (b == "Outros") return -1; return a < b ? -1 : 1; } );
 	}
 	
 	/**

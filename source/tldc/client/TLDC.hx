@@ -3,6 +3,7 @@ import haxor.core.Application;
 import haxor.core.Console;
 import haxor.dom.DOMStage;
 import haxor.platform.html.Entry;
+import js.Browser;
 import tldc.client.controller.TLDCController;
 import tldc.client.model.TLDCModel;
 import tldc.client.view.TLDCView;
@@ -55,6 +56,7 @@ class TLDC extends Application
 	 */
 	override public function Initialize():Void 
 	{
+		Browser.document.body.style.removeProperty("display");
 		Console.Log("TLDC> Init",1);
 		
 		view 		= new TLDCView();

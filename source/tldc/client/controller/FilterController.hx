@@ -64,7 +64,7 @@ class FilterController extends TLDCResource
 					var r : Float = dv<=0.0 ? 0.0 : ((v - vmin) / dv);
 					app.view.section.region.SetRegionHeat(rg.id, r,Std.int(v));
 				}
-				
+				app.view.section.region.SetMinMax(cast vmin,cast vmax);
 				app.view.header.ChangeCounter(cast sum, 1.0, 0);
 			}
 		}		

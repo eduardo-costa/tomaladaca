@@ -1,5 +1,5 @@
 (function () { "use strict";
-var $hxClasses = {},$estr = function() { return js.Boot.__string_rec(this,''); };
+var $hxClasses = {};
 function $extend(from, fields) {
 	function Inherit() {} Inherit.prototype = from; var proto = new Inherit();
 	for (var name in fields) proto[name] = fields[name];
@@ -678,15 +678,12 @@ haxe.io.Eof.prototype = {
 };
 haxe.io.Error = { __ename__ : true, __constructs__ : ["Blocked","Overflow","OutsideBounds","Custom"] };
 haxe.io.Error.Blocked = ["Blocked",0];
-haxe.io.Error.Blocked.toString = $estr;
 haxe.io.Error.Blocked.__enum__ = haxe.io.Error;
 haxe.io.Error.Overflow = ["Overflow",1];
-haxe.io.Error.Overflow.toString = $estr;
 haxe.io.Error.Overflow.__enum__ = haxe.io.Error;
 haxe.io.Error.OutsideBounds = ["OutsideBounds",2];
-haxe.io.Error.OutsideBounds.toString = $estr;
 haxe.io.Error.OutsideBounds.__enum__ = haxe.io.Error;
-haxe.io.Error.Custom = function(e) { var $x = ["Custom",3,e]; $x.__enum__ = haxe.io.Error; $x.toString = $estr; return $x; };
+haxe.io.Error.Custom = function(e) { var $x = ["Custom",3,e]; $x.__enum__ = haxe.io.Error; return $x; };
 haxe.xml = {};
 haxe.xml.Parser = function() { };
 $hxClasses["haxe.xml.Parser"] = haxe.xml.Parser;
@@ -3944,41 +3941,29 @@ haxor.core.Application.prototype = $extend(haxor.platform.html.HTMLApplication.p
 });
 haxor.core.Platform = { __ename__ : true, __constructs__ : ["Unknown","Windows","Linux","Android","MacOS","iOS","HTML","NodeJS"] };
 haxor.core.Platform.Unknown = ["Unknown",0];
-haxor.core.Platform.Unknown.toString = $estr;
 haxor.core.Platform.Unknown.__enum__ = haxor.core.Platform;
 haxor.core.Platform.Windows = ["Windows",1];
-haxor.core.Platform.Windows.toString = $estr;
 haxor.core.Platform.Windows.__enum__ = haxor.core.Platform;
 haxor.core.Platform.Linux = ["Linux",2];
-haxor.core.Platform.Linux.toString = $estr;
 haxor.core.Platform.Linux.__enum__ = haxor.core.Platform;
 haxor.core.Platform.Android = ["Android",3];
-haxor.core.Platform.Android.toString = $estr;
 haxor.core.Platform.Android.__enum__ = haxor.core.Platform;
 haxor.core.Platform.MacOS = ["MacOS",4];
-haxor.core.Platform.MacOS.toString = $estr;
 haxor.core.Platform.MacOS.__enum__ = haxor.core.Platform;
 haxor.core.Platform.iOS = ["iOS",5];
-haxor.core.Platform.iOS.toString = $estr;
 haxor.core.Platform.iOS.__enum__ = haxor.core.Platform;
 haxor.core.Platform.HTML = ["HTML",6];
-haxor.core.Platform.HTML.toString = $estr;
 haxor.core.Platform.HTML.__enum__ = haxor.core.Platform;
 haxor.core.Platform.NodeJS = ["NodeJS",7];
-haxor.core.Platform.NodeJS.toString = $estr;
 haxor.core.Platform.NodeJS.__enum__ = haxor.core.Platform;
 haxor.core.ApplicationProtocol = { __ename__ : true, __constructs__ : ["None","File","HTTP","HTTPS"] };
 haxor.core.ApplicationProtocol.None = ["None",0];
-haxor.core.ApplicationProtocol.None.toString = $estr;
 haxor.core.ApplicationProtocol.None.__enum__ = haxor.core.ApplicationProtocol;
 haxor.core.ApplicationProtocol.File = ["File",1];
-haxor.core.ApplicationProtocol.File.toString = $estr;
 haxor.core.ApplicationProtocol.File.__enum__ = haxor.core.ApplicationProtocol;
 haxor.core.ApplicationProtocol.HTTP = ["HTTP",2];
-haxor.core.ApplicationProtocol.HTTP.toString = $estr;
 haxor.core.ApplicationProtocol.HTTP.__enum__ = haxor.core.ApplicationProtocol;
 haxor.core.ApplicationProtocol.HTTPS = ["HTTPS",3];
-haxor.core.ApplicationProtocol.HTTPS.toString = $estr;
 haxor.core.ApplicationProtocol.HTTPS.__enum__ = haxor.core.ApplicationProtocol;
 haxor.core.Console = function() { };
 $hxClasses["haxor.core.Console"] = haxor.core.Console;
@@ -4074,10 +4059,8 @@ haxor.core.Console.SetStyle = function(p_size,p_color,p_background,p_font) {
 };
 haxor.core.EngineState = { __ename__ : true, __constructs__ : ["Play","Editor"] };
 haxor.core.EngineState.Play = ["Play",0];
-haxor.core.EngineState.Play.toString = $estr;
 haxor.core.EngineState.Play.__enum__ = haxor.core.EngineState;
 haxor.core.EngineState.Editor = ["Editor",1];
-haxor.core.EngineState.Editor.toString = $estr;
 haxor.core.EngineState.Editor.__enum__ = haxor.core.EngineState;
 haxor.core.Engine = function() { };
 $hxClasses["haxor.core.Engine"] = haxor.core.Engine;
@@ -4291,94 +4274,67 @@ $hxClasses["haxor.core.DepthTest"] = haxor.core.DepthTest;
 haxor.core.DepthTest.__name__ = ["haxor","core","DepthTest"];
 haxor.core.PixelFormat = { __ename__ : true, __constructs__ : ["Alpha8","Luminance","RGB8","RGBA8","Half","Half3","Half4","Float","Float3","Float4","Depth"] };
 haxor.core.PixelFormat.Alpha8 = ["Alpha8",0];
-haxor.core.PixelFormat.Alpha8.toString = $estr;
 haxor.core.PixelFormat.Alpha8.__enum__ = haxor.core.PixelFormat;
 haxor.core.PixelFormat.Luminance = ["Luminance",1];
-haxor.core.PixelFormat.Luminance.toString = $estr;
 haxor.core.PixelFormat.Luminance.__enum__ = haxor.core.PixelFormat;
 haxor.core.PixelFormat.RGB8 = ["RGB8",2];
-haxor.core.PixelFormat.RGB8.toString = $estr;
 haxor.core.PixelFormat.RGB8.__enum__ = haxor.core.PixelFormat;
 haxor.core.PixelFormat.RGBA8 = ["RGBA8",3];
-haxor.core.PixelFormat.RGBA8.toString = $estr;
 haxor.core.PixelFormat.RGBA8.__enum__ = haxor.core.PixelFormat;
 haxor.core.PixelFormat.Half = ["Half",4];
-haxor.core.PixelFormat.Half.toString = $estr;
 haxor.core.PixelFormat.Half.__enum__ = haxor.core.PixelFormat;
 haxor.core.PixelFormat.Half3 = ["Half3",5];
-haxor.core.PixelFormat.Half3.toString = $estr;
 haxor.core.PixelFormat.Half3.__enum__ = haxor.core.PixelFormat;
 haxor.core.PixelFormat.Half4 = ["Half4",6];
-haxor.core.PixelFormat.Half4.toString = $estr;
 haxor.core.PixelFormat.Half4.__enum__ = haxor.core.PixelFormat;
 haxor.core.PixelFormat.Float = ["Float",7];
-haxor.core.PixelFormat.Float.toString = $estr;
 haxor.core.PixelFormat.Float.__enum__ = haxor.core.PixelFormat;
 haxor.core.PixelFormat.Float3 = ["Float3",8];
-haxor.core.PixelFormat.Float3.toString = $estr;
 haxor.core.PixelFormat.Float3.__enum__ = haxor.core.PixelFormat;
 haxor.core.PixelFormat.Float4 = ["Float4",9];
-haxor.core.PixelFormat.Float4.toString = $estr;
 haxor.core.PixelFormat.Float4.__enum__ = haxor.core.PixelFormat;
 haxor.core.PixelFormat.Depth = ["Depth",10];
-haxor.core.PixelFormat.Depth.toString = $estr;
 haxor.core.PixelFormat.Depth.__enum__ = haxor.core.PixelFormat;
 haxor.core.TextureFilter = { __ename__ : true, __constructs__ : ["Nearest","Linear","NearestMipmapNearest","NearestMipmapLinear","LinearMipmapNearest","LinearMipmapLinear","Trilinear"] };
 haxor.core.TextureFilter.Nearest = ["Nearest",0];
-haxor.core.TextureFilter.Nearest.toString = $estr;
 haxor.core.TextureFilter.Nearest.__enum__ = haxor.core.TextureFilter;
 haxor.core.TextureFilter.Linear = ["Linear",1];
-haxor.core.TextureFilter.Linear.toString = $estr;
 haxor.core.TextureFilter.Linear.__enum__ = haxor.core.TextureFilter;
 haxor.core.TextureFilter.NearestMipmapNearest = ["NearestMipmapNearest",2];
-haxor.core.TextureFilter.NearestMipmapNearest.toString = $estr;
 haxor.core.TextureFilter.NearestMipmapNearest.__enum__ = haxor.core.TextureFilter;
 haxor.core.TextureFilter.NearestMipmapLinear = ["NearestMipmapLinear",3];
-haxor.core.TextureFilter.NearestMipmapLinear.toString = $estr;
 haxor.core.TextureFilter.NearestMipmapLinear.__enum__ = haxor.core.TextureFilter;
 haxor.core.TextureFilter.LinearMipmapNearest = ["LinearMipmapNearest",4];
-haxor.core.TextureFilter.LinearMipmapNearest.toString = $estr;
 haxor.core.TextureFilter.LinearMipmapNearest.__enum__ = haxor.core.TextureFilter;
 haxor.core.TextureFilter.LinearMipmapLinear = ["LinearMipmapLinear",5];
-haxor.core.TextureFilter.LinearMipmapLinear.toString = $estr;
 haxor.core.TextureFilter.LinearMipmapLinear.__enum__ = haxor.core.TextureFilter;
 haxor.core.TextureFilter.Trilinear = ["Trilinear",6];
-haxor.core.TextureFilter.Trilinear.toString = $estr;
 haxor.core.TextureFilter.Trilinear.__enum__ = haxor.core.TextureFilter;
 haxor.core.TextureWrap = function() { };
 $hxClasses["haxor.core.TextureWrap"] = haxor.core.TextureWrap;
 haxor.core.TextureWrap.__name__ = ["haxor","core","TextureWrap"];
 haxor.core.TextureType = { __ename__ : true, __constructs__ : ["None","Texture2D","TextureCube","RenderTexture","Compute"] };
 haxor.core.TextureType.None = ["None",0];
-haxor.core.TextureType.None.toString = $estr;
 haxor.core.TextureType.None.__enum__ = haxor.core.TextureType;
 haxor.core.TextureType.Texture2D = ["Texture2D",1];
-haxor.core.TextureType.Texture2D.toString = $estr;
 haxor.core.TextureType.Texture2D.__enum__ = haxor.core.TextureType;
 haxor.core.TextureType.TextureCube = ["TextureCube",2];
-haxor.core.TextureType.TextureCube.toString = $estr;
 haxor.core.TextureType.TextureCube.__enum__ = haxor.core.TextureType;
 haxor.core.TextureType.RenderTexture = ["RenderTexture",3];
-haxor.core.TextureType.RenderTexture.toString = $estr;
 haxor.core.TextureType.RenderTexture.__enum__ = haxor.core.TextureType;
 haxor.core.TextureType.Compute = ["Compute",4];
-haxor.core.TextureType.Compute.toString = $estr;
 haxor.core.TextureType.Compute.__enum__ = haxor.core.TextureType;
 haxor.core.ClearFlag = function() { };
 $hxClasses["haxor.core.ClearFlag"] = haxor.core.ClearFlag;
 haxor.core.ClearFlag.__name__ = ["haxor","core","ClearFlag"];
 haxor.core.InputState = { __ename__ : true, __constructs__ : ["None","Down","Up","Hold"] };
 haxor.core.InputState.None = ["None",0];
-haxor.core.InputState.None.toString = $estr;
 haxor.core.InputState.None.__enum__ = haxor.core.InputState;
 haxor.core.InputState.Down = ["Down",1];
-haxor.core.InputState.Down.toString = $estr;
 haxor.core.InputState.Down.__enum__ = haxor.core.InputState;
 haxor.core.InputState.Up = ["Up",2];
-haxor.core.InputState.Up.toString = $estr;
 haxor.core.InputState.Up.__enum__ = haxor.core.InputState;
 haxor.core.InputState.Hold = ["Hold",3];
-haxor.core.InputState.Hold.toString = $estr;
 haxor.core.InputState.Hold.__enum__ = haxor.core.InputState;
 haxor.core.IRenderable = function() { };
 $hxClasses["haxor.core.IRenderable"] = haxor.core.IRenderable;
@@ -6184,16 +6140,12 @@ haxor.graphics.GL.Focus = function() {
 };
 haxor.graphics.GraphicAPI = { __ename__ : true, __constructs__ : ["None","OpenGL","OpenGLES","WebGL"] };
 haxor.graphics.GraphicAPI.None = ["None",0];
-haxor.graphics.GraphicAPI.None.toString = $estr;
 haxor.graphics.GraphicAPI.None.__enum__ = haxor.graphics.GraphicAPI;
 haxor.graphics.GraphicAPI.OpenGL = ["OpenGL",1];
-haxor.graphics.GraphicAPI.OpenGL.toString = $estr;
 haxor.graphics.GraphicAPI.OpenGL.__enum__ = haxor.graphics.GraphicAPI;
 haxor.graphics.GraphicAPI.OpenGLES = ["OpenGLES",2];
-haxor.graphics.GraphicAPI.OpenGLES.toString = $estr;
 haxor.graphics.GraphicAPI.OpenGLES.__enum__ = haxor.graphics.GraphicAPI;
 haxor.graphics.GraphicAPI.WebGL = ["WebGL",3];
-haxor.graphics.GraphicAPI.WebGL.toString = $estr;
 haxor.graphics.GraphicAPI.WebGL.__enum__ = haxor.graphics.GraphicAPI;
 haxor.graphics.GraphicContext = function(p_application) {
 	this.m_api = haxor.graphics.GraphicAPI.None;
@@ -6694,13 +6646,10 @@ haxor.graphics.Screen.Initialize = function(p_application) {
 };
 haxor.graphics.CursorMode = { __ename__ : true, __constructs__ : ["Show","Hide","Lock"] };
 haxor.graphics.CursorMode.Show = ["Show",0];
-haxor.graphics.CursorMode.Show.toString = $estr;
 haxor.graphics.CursorMode.Show.__enum__ = haxor.graphics.CursorMode;
 haxor.graphics.CursorMode.Hide = ["Hide",1];
-haxor.graphics.CursorMode.Hide.toString = $estr;
 haxor.graphics.CursorMode.Hide.__enum__ = haxor.graphics.CursorMode;
 haxor.graphics.CursorMode.Lock = ["Lock",2];
-haxor.graphics.CursorMode.Lock.toString = $estr;
 haxor.graphics.CursorMode.Lock.__enum__ = haxor.graphics.CursorMode;
 haxor.graphics.material = {};
 haxor.graphics.material.Material = function(p_name) {
@@ -12938,8 +12887,7 @@ haxor.platform.html.Entry.OnWindowLoad = function(p_event) {
 	stage.Parse(haxor.platform.html.Entry.m_application.m_container);
 	haxe.Timer.delay(function() {
 		haxor.platform.html.Entry.m_application.m_container.style.display = cd;
-		window.document.body.style.removeProperty("display");
-	},200);
+	},100);
 	haxor.context.EngineContext.Build();
 	haxor.platform.html.Entry.m_input = new haxor.platform.html.input.HTMLInputHandler(app_input_id);
 	haxor.input.Input.m_handler = haxor.platform.html.Entry.m_input;
@@ -13652,6 +13600,7 @@ tldc.client.TLDC.FormatNumber = function(n) {
 tldc.client.TLDC.__super__ = haxor.core.Application;
 tldc.client.TLDC.prototype = $extend(haxor.core.Application.prototype,{
 	Initialize: function() {
+		window.document.body.style.removeProperty("display");
 		haxor.core.Console.Log("TLDC> Init",1);
 		this.view = new tldc.client.view.TLDCView();
 		this.model = new tldc.client.model.TLDCModel();
@@ -13733,6 +13682,7 @@ tldc.client.controller.FilterController.prototype = $extend(tldc.client.TLDCReso
 				if(dv <= 0.0) r = 0.0; else r = (v1 - vmin) / dv;
 				this.get_app().view.section.region.SetRegionHeat(rg1.id,r,v1 | 0);
 			}
+			this.get_app().view.section.region.SetMinMax(vmin,vmax);
 			this.get_app().view.header.ChangeCounter(sum,1.0,0);
 			break;
 		}
@@ -13794,7 +13744,8 @@ tldc.client.controller.TLDCController.prototype = $extend(tldc.client.TLDCResour
 			_g.get_app().view.section.region.SetMap(p_data);
 			_g.get_app().view.section.Show();
 			haxor.thread.Activity.Delay(1.0,function() {
-				_g.filter.SetMode("region-heat");
+				_g.get_app().view.section.region.InitializeElements();
+				_g.get_app().view.section.region.SelectDefault();
 			});
 		});
 		if(p_progress >= 1.0) this.OnDataComplete();
@@ -13885,6 +13836,11 @@ tldc.client.model.Donation = function(p_type,p_donor,p_to,p_position,p_party,p_s
 	this.type = p_type;
 	this.donor = p_donor;
 	this.to = p_to;
+	var i0 = this.to.indexOf("(");
+	if(i0 >= 0) {
+		this.to = this.to.substring(0,i0);
+		this.to = StringTools.trim(this.to);
+	}
 	this.party = p_party;
 	this.state = p_state;
 	this.value = p_value;
@@ -13894,7 +13850,10 @@ tldc.client.model.Donation = function(p_type,p_donor,p_to,p_position,p_party,p_s
 	if(this.position == "presidente") this.state = "DF";
 	if(this.state == "BR") this.state = "DF";
 	if(this.position.indexOf("comitê") >= 0) this.position = "comite";
-	this.tags = [this.type,this.donor,this.party,this.state,this.position];
+	this.to += " (" + this.party;
+	if(this.state == "") this.to += ""; else this.to += "/" + this.state;
+	this.to += ")";
+	this.tags = [this.type,this.donor,this.party,this.state,this.position,this.donor,this.to];
 };
 $hxClasses["tldc.client.model.Donation"] = tldc.client.model.Donation;
 tldc.client.model.Donation.__name__ = ["tldc","client","model","Donation"];
@@ -13992,15 +13951,21 @@ tldc.client.model.TLDCModel.prototype = $extend(tldc.client.TLDCResource.prototy
 			var i = _g1++;
 			sum += this.donations[i].value;
 		}
-		console.log(">>>>>>>> " + sum);
 		this.filter.Reset();
 		this.parties = [];
 		this.positions = [];
+		this.receptors = [];
+		this.companies = [];
+		this.parties = [];
+		this.persons = [];
+		this.candidates = [];
+		this.origins = [];
 		var _g11 = 0;
 		var _g2 = this.donations.length;
 		while(_g11 < _g2) {
 			var i1 = _g11++;
 			var s;
+			var t = this.donations[i1].type;
 			s = this.donations[i1].party;
 			if(s != "") {
 				if(HxOverrides.indexOf(this.parties,s,0) < 0) this.parties.push(s);
@@ -14009,7 +13974,46 @@ tldc.client.model.TLDCModel.prototype = $extend(tldc.client.TLDCResource.prototy
 			if(s != "") {
 				if(HxOverrides.indexOf(this.positions,s,0) < 0) this.positions.push(s);
 			}
+			s = this.donations[i1].to;
+			if(s != "") {
+				if(HxOverrides.indexOf(this.receptors,s,0) < 0) this.receptors.push(s);
+			}
+			s = this.donations[i1].type;
+			if(s != "") {
+				if(HxOverrides.indexOf(this.origins,s,0) < 0) this.origins.push(s);
+			}
+			s = this.donations[i1].donor;
+			if(t == "empresa") {
+				if(s != "") {
+					if(HxOverrides.indexOf(this.companies,s,0) < 0) this.companies.push(s);
+				}
+			}
+			if(t == "pessoa") {
+				if(s != "") {
+					if(HxOverrides.indexOf(this.persons,s,0) < 0) this.persons.push(s);
+				}
+			}
 		}
+		this.companies.sort(function(a,b) {
+			if(a == "Outros") return 1;
+			if(b == "Outros") return -1;
+			if(a < b) return -1; else return 1;
+		});
+		this.persons.sort(function(a1,b1) {
+			if(a1 == "Outros") return 1;
+			if(b1 == "Outros") return -1;
+			if(a1 < b1) return -1; else return 1;
+		});
+		this.receptors.sort(function(a2,b2) {
+			if(a2 == "Outros") return 1;
+			if(b2 == "Outros") return -1;
+			if(a2 < b2) return -1; else return 1;
+		});
+		this.parties.sort(function(a3,b3) {
+			if(a3 == "Outros") return 1;
+			if(b3 == "Outros") return -1;
+			if(a3 < b3) return -1; else return 1;
+		});
 	}
 	,TraverseTreeData: function(p_node,p_parent,p_callback) {
 		p_callback(p_node,p_parent);
@@ -14169,40 +14173,156 @@ tldc.client.view.section.RegionSection = function(p_container) {
 	tldc.client.view.section.TLDCSection.call(this,p_container);
 	haxor.core.Console.Log("RegionSection> Init.",1);
 	this.regions = [];
+	this.tags = [];
 	this.map = this.container.Find("map");
+	this.set_minValue(this.set_maxValue(0));
 	this.heat = [new haxor.math.Color(0.0,0.0,1.0),new haxor.math.Color(0.0,1.0,1.0),new haxor.math.Color(0.0,1.0,0.0),new haxor.math.Color(1.0,1.0,0.0),new haxor.math.Color(1.0,0.0,0.0)];
-	this.container.Find("filters").get_element().onclick = $bind(this,this.OnFilterClick);
-	this.UpdateFlags();
 };
 $hxClasses["tldc.client.view.section.RegionSection"] = tldc.client.view.section.RegionSection;
 tldc.client.view.section.RegionSection.__name__ = ["tldc","client","view","section","RegionSection"];
 tldc.client.view.section.RegionSection.__super__ = tldc.client.view.section.TLDCSection;
 tldc.client.view.section.RegionSection.prototype = $extend(tldc.client.view.section.TLDCSection.prototype,{
-	UpdateFlags: function() {
-		var _g = this;
-		this.tags = [];
-		this.TraverseDOM(this.container.Find("filters"),function(e) {
-			if(e.nodeName.toLowerCase() != "input") return;
-			var cb = e;
-			if(!cb.checked) _g.tags.push(cb.name);
-		});
+	get_minValue: function() {
+		return this.m_minValue;
 	}
-	,OnFilterClick: function(p_event) {
-		var e = p_event.target;
-		if(e.nodeName.toLowerCase() == "input") {
-			var cb = e;
-			if(cb.name == "all") {
-				var ns = cb.parentElement.nextSibling;
-				this.TraverseDOMStep(ns,function(it) {
-					if(it.nodeName.toLowerCase() == "input") {
-						var ccb = it;
-						ccb.checked = cb.checked;
-					}
-				});
+	,set_minValue: function(v) {
+		var e = this.container.GetChildByName("heat").get_element().firstElementChild.firstElementChild.firstElementChild;
+		e.textContent = "R$ " + tldc.client.TLDC.FormatNumber(v | 0);
+		this.m_minValue = v;
+		return this.m_minValue;
+	}
+	,get_maxValue: function() {
+		return this.m_maxValue;
+	}
+	,set_maxValue: function(v) {
+		var e = this.container.GetChildByName("heat").get_element().firstElementChild.firstElementChild.nextElementSibling.nextElementSibling.firstElementChild;
+		e.textContent = "R$ " + tldc.client.TLDC.FormatNumber(v | 0);
+		this.m_maxValue = v;
+		return this.m_maxValue;
+	}
+	,InitializeElements: function() {
+		var _g = this;
+		var dl;
+		var ids = ["select-position","select-type","select-party","select-company","select-person","select-receptor"];
+		var opts = [[],[],this.get_app().model.parties,this.get_app().model.companies,this.get_app().model.persons,this.get_app().model.receptors];
+		var _g1 = 0;
+		var _g2 = ids.length;
+		while(_g1 < _g2) {
+			var i = _g1++;
+			var o = opts[i].slice();
+			var html = "";
+			o.unshift("Todos");
+			o.push("Nenhum");
+			dl = window.document.getElementById(ids[i]);
+			if(dl == null) {
+				console.log(ids[i]);
+				continue;
 			}
+			var _g3 = 0;
+			var _g21 = o.length;
+			while(_g3 < _g21) {
+				var j = _g3++;
+				var s0 = o[j];
+				var s1 = s0;
+				if(s0 == "Todos") s0 = "all";
+				if(s0 == "Nenhum") s0 = "none";
+				html += "<option value='" + s0 + "'>" + s1 + "</option>\n";
+			}
+			if(o.length > 2) dl.innerHTML = html;
+			dl.value = "";
+			dl.onchange = $bind(this,this.OnDropListChange);
 		}
-		this.UpdateFlags();
+		var tc = window.document.getElementById("tag-container");
+		tc.onclick = $bind(this,this.OnTagClick);
+		var bt = window.document.getElementById("button-tag-clear");
+		bt.onclick = function(e) {
+			_g.tags = [];
+			_g.UpdateTagPanel();
+			_g.get_app().controller.filter.OnRegionFilterChange();
+		};
+	}
+	,SelectDefault: function() {
+		this.tags = [];
+		var rem = this.get_app().model.positions.slice();
+		HxOverrides.remove(rem,"governador");
+		this.RemoveAllTags(rem);
+		this.UpdateTagPanel();
 		this.get_app().controller.filter.OnRegionFilterChange();
+	}
+	,RemoveAllTags: function(l) {
+		var _g1 = 0;
+		var _g = l.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			if(HxOverrides.indexOf(this.tags,l[i],0) < 0) this.tags.push(l[i]);
+		}
+	}
+	,SelectAllTags: function(l) {
+		var _g1 = 0;
+		var _g = l.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			if(HxOverrides.indexOf(this.tags,l[i],0) >= 0) HxOverrides.remove(this.tags,l[i]);
+		}
+	}
+	,OnTagClick: function(p_event) {
+		var e = p_event.target;
+		if(e.id == "tag-close") {
+			HxOverrides.remove(this.tags,e.parentElement.firstElementChild.textContent);
+			this.UpdateTagPanel();
+			this.get_app().controller.filter.OnRegionFilterChange();
+		}
+	}
+	,OnDropListChange: function(p_event) {
+		var e = p_event.target;
+		var l = [];
+		var _g = e.id;
+		switch(_g) {
+		case "select-position":
+			l = this.get_app().model.positions;
+			break;
+		case "select-type":
+			l = this.get_app().model.origins;
+			break;
+		case "select-party":
+			l = this.get_app().model.parties;
+			break;
+		case "select-company":
+			l = this.get_app().model.companies;
+			break;
+		case "select-person":
+			l = this.get_app().model.persons;
+			break;
+		case "select-receptor":
+			l = this.get_app().model.receptors;
+			break;
+		}
+		var _g1 = e.value;
+		switch(_g1) {
+		case "all":
+			this.SelectAllTags(l);
+			break;
+		case "none":
+			this.RemoveAllTags(l);
+			break;
+		default:
+			this.SelectAllTags([e.value]);
+		}
+		e.value = "";
+		this.UpdateTagPanel();
+		this.get_app().controller.filter.OnRegionFilterChange();
+	}
+	,UpdateTagPanel: function() {
+		var tc = window.document.getElementById("tag-container");
+		tc.innerHTML = "";
+		var html = "";
+		var _g1 = 0;
+		var _g = this.tags.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			html += "<div class='panel-tag'><span>" + this.tags[i] + "</span><span id='tag-close'>x</span></div>";
+		}
+		tc.innerHTML = html;
 	}
 	,GetRegion: function(p_id) {
 		var _g1 = 0;
@@ -14220,6 +14340,10 @@ tldc.client.view.section.RegionSection.prototype = $extend(tldc.client.view.sect
 		haxor.core.Tween.Add(r,"color",c,0.5,null,haxor.math.Cubic.Out);
 		haxor.core.Tween.Add(r,"value",p_value,0.5,null,haxor.math.Cubic.Out);
 		haxor.core.Tween.Add(r,"ratio",p_heat,0.5,null,haxor.math.Cubic.Out);
+	}
+	,SetMinMax: function(p_min,p_max) {
+		haxor.core.Tween.Add(this,"minValue",p_min,0.5,null,haxor.math.Cubic.Out);
+		haxor.core.Tween.Add(this,"maxValue",p_max,0.5,null,haxor.math.Cubic.Out);
 	}
 	,ResetRegions: function() {
 		var c = new haxor.math.Color(1,1,1,1);
@@ -14256,12 +14380,12 @@ tldc.client.view.section.RegionSection.prototype = $extend(tldc.client.view.sect
 					break;
 				}
 			}
-			console.log(rci);
 			var r = new tldc.client.view.section.RegionState(it,rci);
 			this.regions.push(r);
 		}
 	}
 	,__class__: tldc.client.view.section.RegionSection
+	,__properties__: $extend(tldc.client.view.section.TLDCSection.prototype.__properties__,{set_maxValue:"set_maxValue",get_maxValue:"get_maxValue",set_minValue:"set_minValue",get_minValue:"get_minValue"})
 });
 tldc.client.view.section.RegionState = function(p_svg,p_chart) {
 	this.m_svg = p_svg;
@@ -14384,7 +14508,7 @@ tldc.client.view.section.RegionState.prototype = {
 	}
 	,set_ratio: function(v) {
 		this.m_ratio = v;
-		this.m_chart.firstElementChild.nextElementSibling.style.width = Std["int"](haxor.math.Mathf.Lerp(0,190,v)) + "px";
+		this.m_chart.firstElementChild.nextElementSibling.style.width = Std["int"](haxor.math.Mathf.Lerp(0,100,v)) + "px";
 		var a = haxor.math.Mathf.Clamp01(v / 0.05);
 		var cc = this.m_color.get_clone();
 		cc.a = a * 0.5;

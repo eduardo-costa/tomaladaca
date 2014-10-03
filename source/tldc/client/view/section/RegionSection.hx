@@ -5,10 +5,14 @@ import haxor.dom.Container;
 import haxor.math.Color;
 import haxor.math.Easing.Cubic;
 import haxor.math.Mathf;
+import js.Browser;
+import js.html.ButtonElement;
+import js.html.DivElement;
 import js.html.Element;
 import js.html.Event;
 import js.html.HTMLCollection;
 import js.html.InputElement;
+import js.html.SelectElement;
 import js.html.svg.SVGElement;
 
 /**
@@ -39,6 +43,34 @@ class RegionSection extends TLDCSection
 	public var tags : Array<String>;
 	
 	/**
+	 * Min value in the heat map
+	 */
+	public var minValue(get_minValue, set_minValue):Int;
+	private function get_minValue():Int { return m_minValue; }
+	private function set_minValue(v:Int):Int 
+	{ 
+		var e : Element = cast container.GetChildByName("heat").element.firstElementChild.firstElementChild.firstElementChild;
+		e.textContent = "R$ " + TLDC.FormatNumber(Std.int(v));
+		m_minValue = v;
+		return m_minValue;
+	}
+	private var m_minValue : Int;
+	
+	/**
+	 * Max value in the heat map
+	 */
+	public var maxValue(get_maxValue, set_maxValue):Int;
+	private function get_maxValue():Int { return m_maxValue; }
+	private function set_maxValue(v:Int):Int 
+	{ 
+		var e : Element = cast container.GetChildByName("heat").element.firstElementChild.firstElementChild.nextElementSibling.nextElementSibling.firstElementChild;
+		e.textContent = "R$ " + TLDC.FormatNumber(Std.int(v));
+		m_maxValue = v;
+		return m_maxValue;
+	}
+	private var m_maxValue : Int;
+	
+	/**
 	 * CTOR.
 	 * @param	p_container
 	 */
@@ -47,7 +79,9 @@ class RegionSection extends TLDCSection
 		super(p_container);
 		Console.Log("RegionSection> Init.", 1);
 		regions = [];
+		tags = [];
 		map = cast container.Find("map");
+		minValue = maxValue = 0;
 		heat = 
 		[
 			new Color(0.0, 0.0, 1.0),
@@ -56,49 +90,152 @@ class RegionSection extends TLDCSection
 			new Color(1.0, 1.0, 0.0),
 			new Color(1.0, 0.0, 0.0)
 		];		
-		container.Find("filters").element.onclick = OnFilterClick;
-		UpdateFlags();		
+				
 	}
 	
 	/**
-	 * Update the checked filters.
+	 * Initializes the droplists.
 	 */
-	private function UpdateFlags():Void
+	public function InitializeElements():Void
 	{
-		tags = [];		
-		TraverseDOM(container.Find("filters"), function(e:Element):Void
+		var dl : SelectElement;
+		var ids : Array<String> = 
+		[
+		"select-position",
+		"select-type",
+		"select-party",
+		"select-company",
+		"select-person",
+		"select-receptor"		
+		];
+		
+		var opts : Array<Array<String>> = 
+		[
+		[],
+		[],
+		app.model.parties,
+		app.model.companies,
+		app.model.persons,
+		app.model.receptors
+		];
+		
+		for (i in 0...ids.length)
 		{
-			if (e.nodeName.toLowerCase() != "input") return;
-			var cb : InputElement = cast e;	
-			if (!cb.checked) tags.push(cb.name);
-		});		
+			var o : Array<String> = opts[i].copy();
+			var html : String = "";
+			o.unshift("Todos");
+			o.push("Nenhum");
+			dl = cast Browser.document.getElementById(ids[i]);
+			if (dl == null) { trace(ids[i]); continue; }
+			for (j in 0...o.length)
+			{
+				var s0 : String = o[j];
+				var s1 : String = s0;
+				if (s0 == "Todos")  s0 = "all";
+				if (s0 == "Nenhum") s0 = "none";
+				html += "<option value='" + s0 + "'>" + s1 + "</option>\n";				
+			}			
+			if (o.length > 2) dl.innerHTML = html;			
+			dl.value = "";
+			dl.onchange = OnDropListChange;
+		}
+		
+		var tc : DivElement = cast Browser.document.getElementById("tag-container");	
+		tc.onclick = OnTagClick;
+		
+		var bt : ButtonElement = cast Browser.document.getElementById("button-tag-clear");	
+		bt.onclick = function(e:Event) { tags = []; UpdateTagPanel(); app.controller.filter.OnRegionFilterChange(); };
+		
+	}
+	
+	/**
+	 * Select the default tags
+	 */
+	public function SelectDefault():Void
+	{
+		tags = [];
+		var rem : Array<String> = app.model.positions.copy();
+		rem.remove("governador");		
+		RemoveAllTags(rem);		
+		UpdateTagPanel();
+		app.controller.filter.OnRegionFilterChange();
+	}
+	
+	/**
+	 * 
+	 * @param	l
+	 */
+	public function RemoveAllTags(l:Array<String>) { for (i in 0...l.length) if (tags.indexOf(l[i]) < 0) tags.push(l[i]); }
+	
+	/**
+	 * 
+	 * @param	l
+	 */
+	public function SelectAllTags(l:Array<String>) { for (i in 0...l.length) if (tags.indexOf(l[i]) >= 0) tags.remove(l[i]); }
+	
+	/**
+	 * 
+	 * @param	p_event
+	 */
+	private function OnTagClick(p_event:Event):Void
+	{
+		var e : Element = cast p_event.target;
+		if (e.id == "tag-close")
+		{
+			tags.remove(e.parentElement.firstElementChild.textContent);
+			UpdateTagPanel();
+			app.controller.filter.OnRegionFilterChange();
+		}		
 	}
 	
 	/**
 	 * Callback called when
 	 * @param	p_event
 	 */
-	private function OnFilterClick(p_event : Event):Void
+	private function OnDropListChange(p_event : Event):Void
 	{
-		var e : Element = cast p_event.target;
-		if (e.nodeName.toLowerCase() == "input")
+		var e : SelectElement = cast p_event.target;
+		var l : Array<String> = [];
+		
+		switch(e.id)
 		{
-			var cb : InputElement = cast e;
-			if (cb.name == "all")
-			{	
-				var ns : Element = cast cb.parentElement.nextSibling;
-				TraverseDOMStep(ns, function(it:Element):Void 
-				{ 
-					if (it.nodeName.toLowerCase() == "input")
-					{
-						var ccb : InputElement = cast it;
-						ccb.checked = cb.checked;					
-					}
-				});
-			}
+			case "select-position": l = app.model.positions;
+			case "select-type": 	l = app.model.origins;			
+			case "select-party": 	l = app.model.parties;
+			case "select-company": 	l = app.model.companies;
+			case "select-person": 	l = app.model.persons;
+			case "select-receptor": l = app.model.receptors;
 		}
-		UpdateFlags();
+		
+		switch(e.value)
+		{
+			case "all":								
+				SelectAllTags(l);								
+			case "none":
+				RemoveAllTags(l);
+				
+			default:								
+				SelectAllTags([e.value]);				
+		}
+		e.value = "";
+		UpdateTagPanel();
+		
 		app.controller.filter.OnRegionFilterChange();
+	}
+	
+	/**
+	 * Updates the tag list in the right panel.
+	 */
+	private function UpdateTagPanel():Void
+	{
+		var tc : DivElement = cast Browser.document.getElementById("tag-container");		
+		tc.innerHTML = "";		
+		var html : String = "";
+		for (i in 0...tags.length)
+		{
+			html += "<div class='panel-tag'><span>" + tags[i] + "</span><span id='tag-close'>x</span></div>";
+		}
+		tc.innerHTML = html;
 	}
 	
 	/**
@@ -125,6 +262,18 @@ class RegionSection extends TLDCSection
 		Tween.Add(r, "color", c, 0.5, Cubic.Out);
 		Tween.Add(r, "value", p_value, 0.5, Cubic.Out);
 		Tween.Add(r, "ratio", p_heat, 0.5, Cubic.Out);
+	}
+	
+	/**
+	 * Updates the min/max donation values for the current filter.
+	 * @param	p_min
+	 * @param	p_max
+	 */
+	public function SetMinMax(p_min:Int, p_max:Int):Void
+	{
+		
+		Tween.Add(this, "minValue", p_min, 0.5, Cubic.Out);
+		Tween.Add(this, "maxValue", p_max, 0.5, Cubic.Out);
 	}
 	
 	/**
@@ -167,7 +316,7 @@ class RegionSection extends TLDCSection
 					break;
 				}
 			}
-			trace(rci);
+			
 			var r : RegionState = new RegionState(it, rci);			
 			regions.push(r);
 		}
@@ -228,7 +377,7 @@ class RegionState
 	private function set_ratio(v:Float):Float 
 	{ 
 		m_ratio = v;		
-		m_chart.firstElementChild.nextElementSibling.style.width = Mathf.LerpInt(0, 190, v) + "px";
+		m_chart.firstElementChild.nextElementSibling.style.width = Mathf.LerpInt(0, 100, v) + "px";
 		var a : Float = Mathf.Clamp01(v / 0.05);
 		var cc : Color = m_color.clone;
 		cc.a = a*0.5;

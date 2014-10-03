@@ -45,78 +45,72 @@
 
 	<div id="haxor">
 		<container name="content" wh="100%">
-			<sprite name="background" src="image/senado_small.png" pxy="50%" xy="50%" sxy="2.1" alpha="0.33"></sprite>
+			<sprite name="background" src="image/senado_small.jpg" pxy="50%" xy="50%" sxy="2.1" alpha="0.33"></sprite>
 			<sprite name="pattern" src="@bkg-pattern" wh="100%" alpha="0.8" pattern></sprite>
 			
 			<container name="section" x="0%" wh="100%" alpha="0.0">
 				<container name="region" wh="100%" x="0%" style="overflow:hidden;">
-					<container name="map" h="100%" w="100%" px="50%" x="50%" margin="0 800 90 50">
-						
-					</container>						
-					<container name="filters" w="280" h="440" px="320" py="50%" x="100%" y="50%"  style="background-color: #eee; border-radius: 8px; overflow:hidden;">
-						<div class="panel-t1"><strong>Filtros</strong></div>						
-						<label class="panel-t2"><input class="t2-checkbox" type="checkbox" checked="true" name="all" />Para</label>
-						<div class="panel-form">
-							<div class="panel-column" style="float:left;">
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox"  name="presidente" />Presidente</label>
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="governador" />Governador</label>
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox"  name="senador" />Senador</label>
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox"  name="deputado-federal" />Deputado Federal</label>
+					<container name="map" w="100%" h="100%" px="0" x="0" margin="325 375 160 90"></container>											
+					<container name="heat" w="325" h="22" px="50%" py="72" x="50%" y="100%">
+							<div class="heat-panel">
+								<span class="heat-panel-field"><strong>R$ 999.999.999,00</strong></span>
+								<div class="heat-panel-gradient"></div>
+								<span class="heat-panel-field"><strong>R$ 999.999.999,00</strong></span>
 							</div>
-							<div class="panel-column" style="float:right;">
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" name="deputado-estadual" />Deputado Estadual</label>							
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" name="deputado-distrital" />Deputado Distrital</label>							
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" name="comite" />Partido</label>							
-							</div>
+					</container>
+					<container name="filters" w="828" h="85" px="50%" x="50%" y="65" style="background-color: #eee; border-radius: 8px; overflow:hidden;">
+						<div class="panel-t1"><strong>Filtros</strong></div>
+						<div id="l0" style="width:100%; height: 4px;">
+							<div class="panel-t2" style="float:left">Para</div>
+							<select id="select-position" class="panel-select">						  							  
+							  <option value="all">Todos</option>	
+							  <option value="presidente">Presidente</option>
+							  <option value="governador">Governador</option>
+							  <option value="senador">Senador</option>
+							  <option value="deputado-federal">Deputado Federal</option>
+							  <option value="deputado-estadual">Deputado Estadual</option>
+							  <option value="deputado-distrital">Deputado Distrital</option>
+							  <option value="comite">Partido</option>
+							  <option value="none">Nenhum</option>
+							</select>
+							<div class="panel-t2" style="float:left">Fonte</div>
+							<select id="select-type" class="panel-select">
+							  <option value="all">Todos</option>						  
+							  <option value="empresa">Empresas</option>
+							  <option value="pessoa">Pessoas</option>
+							  <option value="fundo">Fundo Partidário</option>
+							  <option value="none">Nenhum</option>
+							</select>
+							
+							<div class="panel-t2" style="float:left">Empresa</div>
+							<select id="select-company" class="panel-select"></select>
+							
 						</div>
-						<label class="panel-t2"><input class="t2-checkbox" type="checkbox" checked="true" name="all" />Fonte</label>
-						<div class="panel-form">
-							<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="empresa" />Empresas</label>
-							<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="pessoa" />Pessoas</label>
-							<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="fundo" />Fundo Partidário</label>							
-						</div>	
-						
-						<label class="panel-t2"><input class="t2-checkbox" type="checkbox" checked="true" name="all" />Partido</label>
-						<div class="panel-form">
-							<div class="panel-column" style="float:left;">
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PSB" />PSB</label>
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PT" />PT</label>
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PTB" />PTB</label>
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PROS" />PROS</label>
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PSDB" />PSDB</label>
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PMDB" />PMDB</label>
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PDT" />PDT</label>
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PSC" />PSC</label>
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PSD" />PSD</label>
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="DEM" />DEM</label>
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PV" />PV</label>
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PR" />PR</label>
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="SD" />SD</label>
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PSL" />PSL</label>
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PEN" />PEN</label>
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PPS" />PPS</label>
-							</div>
-							<div class="panel-column" style="float:right;">								
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PRP" />PRP</label>
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PC DO B" />PC DO B</label>
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PP" />PP</label>
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PTN" />PTN</label>
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PPL" />PPL</label>
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PHS" />PHS</label>
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PMN" />PMN</label>
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PSOL" />PSOL</label>
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PSDC" />PSDC</label>
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PSTU" />PSTU</label>
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PRB" />PRB</label>
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PTC" />PTC</label>
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PT DO B" />PT DO B</label>
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PCB" />PCB</label>
-								<label class="checkbox-label"><input class="panel-checkbox" type="checkbox" checked="true" name="PRTB" />PRTB</label>
-							</div>
+						<br/>			
+						<div id="l1" style="width:100%; height: 4px;">
+							
+							<div class="panel-t2" style="float:left">Partido</div>
+							<select id="select-party" class="panel-select"></select>
+							
+							
+							<div class="panel-t2" style="float:left">Pessoa</div>
+							<select id="select-person" class="panel-select"></select>
+							
+							<div class="panel-t2" style="float:left">Beneficiado</div>
+							<select id="select-receptor" class="panel-select"></select>					
+							
+							
+							
 						</div>
+						
 					</container>
 					
-					<container name="charts" w="250" h="465" px="630" py="50%" x="100%" y="50%"  style="background-color: #eee; border-radius: 8px; overflow:hidden;">
+					<container name="tags" w="360" h="450" px="385" py="50%" x="100%" y="50%"  style="background-color: #eee; border-radius: 8px; overflow:hidden;">
+						<div class="panel-t1"><strong>Excluídos</strong><button id="button-tag-clear">Limpar</button></div>
+						<div id="tag-container" style="position:relative; top: 0px; margin-left: 2px; margin-right: 2px; margin-bottom: 10px; height:415px; overflow-y:scroll;"></div>
+					</container>
+					
+					<container name="charts" w="160" h="465" py="515" x="25" y="100%"  style="background-color: #eee; border-radius: 8px; overflow:hidden;">
 						<div class="panel-t1"><strong>Valores</strong></div>												
 						<div class="panel-form">
 							<div class="region-chart-item"><span class="rci-label"><strong>AC</strong></span><div class="rci-fill">R$0,00</div></div>
@@ -147,6 +141,22 @@
 							<div class="region-chart-item"><span class="rci-label"><strong>SE</strong></span><div class="rci-fill">R$0,00</div></div>
 							<div class="region-chart-item"><span class="rci-label"><strong>TO</strong></span><div class="rci-fill">R$0,00</div></div>
 							
+						</div>							
+					</container>
+					
+					<container name="info" w="400" h="215" py="0" x="25" y="65"  style="background-color: #eee; border-radius: 8px; overflow:hidden;">
+						<div class="panel-t1"><strong>Informações</strong></div>												
+						<div class="panel-form">
+							<span class="info-topic"><strong>Valores:</strong></span><span class="info-text">Doações destinados a políticos atuando no estado.</span><br/>
+							<span class="info-topic"><strong>Filtros:</strong></span><span class="info-text">Combinação de critérios que irão filtrar as doações.</span><br/>
+							<span class="info-topic"><strong>&nbsp;&nbsp;&nbsp;- Para:</strong></span><span class="info-text">Cargo ou Partido.</span><br/>
+							<span class="info-topic"><strong>&nbsp;&nbsp;&nbsp;- Fonte:</strong></span><span class="info-text">Quem pagou.</span><br/>
+							<span class="info-topic"><strong>&nbsp;&nbsp;&nbsp;- Empresa:</strong></span><span class="info-text">Pessoa Jurídica.</span><br/>
+							<span class="info-topic"><strong>&nbsp;&nbsp;&nbsp;- Partido:</strong></span><span class="info-text">Partido beneficiado.</span><br/>
+							<span class="info-topic"><strong>&nbsp;&nbsp;&nbsp;- Pessoa:</strong></span><span class="info-text">Pessoa Física.</span><br/>
+							<span class="info-topic"><strong>&nbsp;&nbsp;&nbsp;- Beneficiado:</strong></span><span class="info-text">Quem recebeu a doação.</span><br/>
+							<span class="info-topic"><strong>Escala de Cores:</strong></span><span class="info-text">Variação entre a menor e maior doação no mapa.</span><br/>
+							<span class="info-topic"><strong>Excluídos:</strong></span><span class="info-text">Critérios desconsiderados na filtragem.</span><br/>							
 						</div>							
 					</container>
 					
@@ -193,7 +203,7 @@
 				</div>
 			</container>
 		</container>		
-		<a href="https://github.com/eduardo-costa/tomaladaca"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/e7bbb0521b397edbd5fe43e7f760759336b5e05f/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677265656e5f3030373230302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png"></a>				
+		<a href="https://github.com/eduardo-costa/tomaladaca"><img style="position: absolute; top: 0; right: 0; border: 0; width: 120px; height:120px;" src="https://camo.githubusercontent.com/e7bbb0521b397edbd5fe43e7f760759336b5e05f/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677265656e5f3030373230302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png"></a>				
 	</div>
 		
 </body>
