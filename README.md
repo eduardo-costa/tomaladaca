@@ -5,7 +5,7 @@ Site OpenSource que permite ao eleitor filtrar e analisar todas doações feitas
 Dessa forma é possível avaliar o relacionamento dos beneficiados com seus doadores (pessoas físicas e jurídicas).
 O sistema permite filtrar as doações por região, partido, empresa ou pessoa doadora, cargo político entre outros.
 
-http://labs.thelaborat.org/tomaladaca/
+http://www.tomaladaca.org
 
 ## Sumário
 
@@ -20,6 +20,7 @@ Site desenvolvido com tecnologia HTML5 utilizando a linguagem Haxe e o framework
 * Haxe - http://www.haxe.org/
 * Haxor - https://github.com/haxorplatform/haxor-engine
  * Instalação: Rodar o comando `haxelib local haxor-1,0,0.zip` para adicionar a lib da engine.
+ * A engine pertence à outra licensa.
 
 ## Autor
 
