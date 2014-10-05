@@ -172,7 +172,7 @@ class TLDCFilter extends TLDCResource
 			}
 			if(_d[i].selected) res.push(_d[i]);
 		}		
-		trace(res);
+		
 		UpdateDonations();
 	}
 	
@@ -221,7 +221,7 @@ class TLDCFilter extends TLDCResource
 			min = max = 0;
 		}
 		
-		Console.Log("TLDCFilter> Query Found [" + found + "] results min["+min+"] max["+max+"] total["+total+"]");		
+		Console.Log("TLDCFilter> Query Found [" + found + "] results min["+min+"] max["+max+"] total["+total+"]",1);		
 		if (Console.verbose >= 3) trace(this);
 		app.controller.OnQueryChange(this);
 	}

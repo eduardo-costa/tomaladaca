@@ -121,7 +121,11 @@ class RegionSection extends TLDCSection
 			o.unshift("Todos");
 			o.push("Nenhum");
 			dl = cast Browser.document.getElementById(ids[i]);
-			if (dl == null) { trace(ids[i]); continue; }
+			if (dl == null) 
+			{
+				//trace(ids[i]); 
+				continue; 
+			}
 			for (j in 0...o.length)
 			{
 				var s0 : String = o[j];
@@ -151,7 +155,7 @@ class RegionSection extends TLDCSection
 	 */
 	public function OnQueryChange(p_filter:TLDCFilter):Void
 	{		
-		Console.Log("RegionSection> QueryChange");
+		Console.Log("RegionSection> QueryChange",1);
 		SetMinMax(p_filter.min, p_filter.max);
 		UpdateTags(p_filter.query);
 		var rl : Array<RegionState> = regions;

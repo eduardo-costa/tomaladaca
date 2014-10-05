@@ -64,7 +64,7 @@ class TLDCController extends TLDCResource
 	 */
 	public function OnQueryChange(p_filter : TLDCFilter):Void
 	{
-		Console.Log("TLDCController> QueryChange");
+		Console.Log("TLDCController> QueryChange",1);
 		app.view.header.UpdateCounter(p_filter.total, 1.0);
 		app.view.section.region.OnQueryChange(p_filter);
 	}

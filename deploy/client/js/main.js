@@ -13663,7 +13663,7 @@ tldc.client.controller.TLDCController.prototype = $extend(tldc.client.TLDCResour
 		this.path = pl;
 	}
 	,OnQueryChange: function(p_filter) {
-		haxor.core.Console.Log("TLDCController> QueryChange");
+		haxor.core.Console.Log("TLDCController> QueryChange",1);
 		this.get_app().view.header.UpdateCounter(p_filter.total,1.0);
 		this.get_app().view.section.region.OnQueryChange(p_filter);
 	}
@@ -13792,7 +13792,6 @@ tldc.client.model.TLDCFilter.prototype = $extend(tldc.client.TLDCResource.protot
 			}
 			if(this._d[i].selected) res.push(this._d[i]);
 		}
-		console.log(res);
 		this.UpdateDonations();
 	}
 	,Clear: function() {
@@ -13833,7 +13832,7 @@ tldc.client.model.TLDCFilter.prototype = $extend(tldc.client.TLDCResource.protot
 			this.max = Math.max(this.max,v1);
 		}
 		if(found <= 0) this.min = this.max = 0;
-		haxor.core.Console.Log("TLDCFilter> Query Found [" + found + "] results min[" + this.min + "] max[" + this.max + "] total[" + this.total + "]");
+		haxor.core.Console.Log("TLDCFilter> Query Found [" + found + "] results min[" + this.min + "] max[" + this.max + "] total[" + this.total + "]",1);
 		if(haxor.core.Console.verbose >= 3) console.log(this);
 		this.get_app().controller.OnQueryChange(this);
 	}
@@ -13926,7 +13925,7 @@ tldc.client.model.TLDCModel.prototype = $extend(tldc.client.TLDCResource.prototy
 			case "pessoa":case "empresa":
 				if(ppn.toLowerCase().indexOf("grandes") >= 0) this.m_current_party = StringTools.trim(n).toUpperCase();
 				if(pn.toLowerCase().indexOf("pequenos") >= 0) {
-					this.m_current_donor = "Pequenos Doadores";
+					if(this.m_current_type == "empresa") this.m_current_donor = "Pequenas Empresas"; else this.m_current_donor = "Pequenos Doadores";
 					this.m_current_party = StringTools.trim(n).toUpperCase();
 				}
 				if(pn.toLowerCase().indexOf("grandes") >= 0) this.m_current_donor = StringTools.trim(n);
@@ -14007,23 +14006,19 @@ tldc.client.model.TLDCModel.prototype = $extend(tldc.client.TLDCResource.prototy
 			}
 		}
 		this.companies.sort(function(a,b) {
-			if(a == "Outros") return 1;
-			if(b == "Outros") return -1;
+			if(a.indexOf("Pequenos") >= 0) return 1;
+			if(b.indexOf("Pequenos") >= 0) return -1;
 			if(a < b) return -1; else return 1;
 		});
 		this.persons.sort(function(a1,b1) {
-			if(a1 == "Outros") return 1;
-			if(b1 == "Outros") return -1;
+			if(a1.indexOf("Pequenos") >= 0) return 1;
+			if(b1.indexOf("Pequenos") >= 0) return -1;
 			if(a1 < b1) return -1; else return 1;
 		});
 		this.receptors.sort(function(a2,b2) {
-			if(a2 == "Outros") return 1;
-			if(b2 == "Outros") return -1;
 			if(a2 < b2) return -1; else return 1;
 		});
 		this.parties.sort(function(a3,b3) {
-			if(a3 == "Outros") return 1;
-			if(b3 == "Outros") return -1;
 			if(a3 < b3) return -1; else return 1;
 		});
 		this.filter.Initialize();
@@ -14230,10 +14225,7 @@ tldc.client.view.section.RegionSection.prototype = $extend(tldc.client.view.sect
 			o.unshift("Todos");
 			o.push("Nenhum");
 			dl = window.document.getElementById(ids[i]);
-			if(dl == null) {
-				console.log(ids[i]);
-				continue;
-			}
+			if(dl == null) continue;
 			var _g3 = 0;
 			var _g21 = o.length;
 			while(_g3 < _g21) {
@@ -14256,7 +14248,7 @@ tldc.client.view.section.RegionSection.prototype = $extend(tldc.client.view.sect
 		};
 	}
 	,OnQueryChange: function(p_filter) {
-		haxor.core.Console.Log("RegionSection> QueryChange");
+		haxor.core.Console.Log("RegionSection> QueryChange",1);
 		this.SetMinMax(p_filter.min,p_filter.max);
 		this.UpdateTags(p_filter.query);
 		var rl = this.regions;

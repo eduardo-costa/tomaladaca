@@ -272,7 +272,14 @@ class TLDCModel extends TLDCResource
 					if (ppn.toLowerCase().indexOf("grandes") >= 0) m_current_party = StringTools.trim(n).toUpperCase(); 					
 					if (pn.toLowerCase().indexOf("pequenos") >= 0)
 					{
-						m_current_donor = "Pequenos Doadores";
+						if (m_current_type == "empresa")
+						{
+							m_current_donor = "Pequenas Empresas";
+						}
+						else
+						{
+							m_current_donor = "Pequenos Doadores";
+						}						
 						m_current_party = StringTools.trim(n).toUpperCase();
 					}					
 					if (pn.toLowerCase().indexOf("grandes") >= 0) m_current_donor = StringTools.trim(n);					
@@ -344,6 +351,9 @@ class TLDCModel extends TLDCResource
 			if (t == "empresa") if (s != "") if (companies.indexOf(s) < 0) companies.push(s);
 			if (t == "pessoa")  if (s != "") if (persons.indexOf(s) < 0) persons.push(s);
 			
+			
+			
+			
 		}
 		/*
 		for (i in 0...companies.length)
@@ -373,10 +383,11 @@ class TLDCModel extends TLDCResource
 		}
 		//*/
 		
-		companies.sort(function(a:String, b:String):Int { if (a == "Outros") return 1; if (b == "Outros") return -1; return a < b ? -1 : 1; } );
-		persons.sort(function(a:String, b:String):Int { if (a == "Outros") return 1; if (b == "Outros") return -1; return a < b ? -1 : 1; } );
-		receptors.sort(function(a:String, b:String):Int { if (a == "Outros") return 1; if (b == "Outros") return -1; return a < b ? -1 : 1; } );
-		parties.sort(function(a:String, b:String):Int { if (a == "Outros") return 1; if (b == "Outros") return -1; return a < b ? -1 : 1; } );
+		companies.sort(function(a:String, b:String):Int { if (a.indexOf("Pequenos")>=0) return 1; if (b.indexOf("Pequenos")>=0) return -1; return a < b ? -1 : 1; } );		
+		persons.sort(function(a:String, b:String):Int { if (a.indexOf("Pequenos") >= 0) return 1; if (b.indexOf("Pequenos") >= 0) return -1; return a < b ? -1 : 1; } );
+		
+		receptors.sort(function(a:String, b:String):Int {  return a < b ? -1 : 1; } );
+		parties.sort(function(a:String, b:String):Int { return a < b ? -1 : 1; } );
 		
 		filter.Initialize();
 	}
