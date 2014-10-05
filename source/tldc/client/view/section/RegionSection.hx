@@ -14,6 +14,7 @@ import js.html.HTMLCollection;
 import js.html.InputElement;
 import js.html.SelectElement;
 import js.html.svg.SVGElement;
+import tldc.client.model.TLDCFilter;
 
 /**
  * Section that handles data by region.
@@ -36,12 +37,7 @@ class RegionSection extends TLDCSection
 	 * Heat colors.
 	 */
 	public var heat : Array<Color>;
-	
-	/**
-	 * Active filters.
-	 */
-	public var tags : Array<String>;
-	
+		
 	/**
 	 * Min value in the heat map
 	 */
@@ -78,8 +74,7 @@ class RegionSection extends TLDCSection
 	{
 		super(p_container);
 		Console.Log("RegionSection> Init.", 1);
-		regions = [];
-		tags = [];
+		regions = [];		
 		map = cast container.Find("map");
 		minValue = maxValue = 0;
 		heat = 
@@ -144,34 +139,31 @@ class RegionSection extends TLDCSection
 		tc.onclick = OnTagClick;
 		
 		var bt : ButtonElement = cast Browser.document.getElementById("button-tag-clear");	
-		bt.onclick = function(e:Event) { tags = []; UpdateTagPanel(); app.controller.filter.OnRegionFilterChange(); };
+		bt.onclick = function(e:Event) 
+		{
+			app.model.filter.Clear(); 
+		};
 		
 	}
 	
 	/**
-	 * Select the default tags
+	 * Callback called when the query has changed.
 	 */
-	public function SelectDefault():Void
-	{
-		tags = [];
-		var rem : Array<String> = app.model.positions.copy();
-		rem.remove("governador");		
-		RemoveAllTags(rem);		
-		UpdateTagPanel();
-		app.controller.filter.OnRegionFilterChange();
+	public function OnQueryChange(p_filter:TLDCFilter):Void
+	{		
+		Console.Log("RegionSection> QueryChange");
+		SetMinMax(p_filter.min, p_filter.max);
+		UpdateTags(p_filter.query);
+		var rl : Array<RegionState> = regions;
+		for (i in 0...rl.length)
+		{
+			var rg : RegionState = rl[i];
+			var v  : Float = p_filter.totalByState.get(rg.id);
+			var dv : Float = p_filter.max - p_filter.min;					
+			var r : Float = dv <= 0.0 ? 0.0 : ((v - p_filter.min) / dv);			
+			app.view.section.region.SetRegionHeat(rg.id, r,Std.int(v));
+		}
 	}
-	
-	/**
-	 * 
-	 * @param	l
-	 */
-	public function RemoveAllTags(l:Array<String>) { for (i in 0...l.length) if (tags.indexOf(l[i]) < 0) tags.push(l[i]); }
-	
-	/**
-	 * 
-	 * @param	l
-	 */
-	public function SelectAllTags(l:Array<String>) { for (i in 0...l.length) if (tags.indexOf(l[i]) >= 0) tags.remove(l[i]); }
 	
 	/**
 	 * 
@@ -182,9 +174,8 @@ class RegionSection extends TLDCSection
 		var e : Element = cast p_event.target;
 		if (e.id == "tag-close")
 		{
-			tags.remove(e.parentElement.firstElementChild.textContent);
-			UpdateTagPanel();
-			app.controller.filter.OnRegionFilterChange();
+			var tag : String = e.parentElement.firstElementChild.textContent;			
+			app.model.filter.RemoveQuery([tag]);
 		}		
 	}
 	
@@ -195,8 +186,7 @@ class RegionSection extends TLDCSection
 	private function OnDropListChange(p_event : Event):Void
 	{
 		var e : SelectElement = cast p_event.target;
-		var l : Array<String> = [];
-		
+		var l : Array<String> = [];		
 		switch(e.id)
 		{
 			case "select-position": l = app.model.positions;
@@ -205,36 +195,25 @@ class RegionSection extends TLDCSection
 			case "select-company": 	l = app.model.companies;
 			case "select-person": 	l = app.model.persons;
 			case "select-receptor": l = app.model.receptors;
-		}
-		
+		}		
 		switch(e.value)
 		{
-			case "all":								
-				SelectAllTags(l);								
-			case "none":
-				RemoveAllTags(l);
-				
-			default:								
-				SelectAllTags([e.value]);				
-		}
+			case "all":		app.model.filter.AddQuery(l);
+			case "none":	app.model.filter.RemoveQuery(l);				
+			default:		app.model.filter.AddQuery([e.value]);					
+		}		
 		e.value = "";
-		UpdateTagPanel();
-		
-		app.controller.filter.OnRegionFilterChange();
 	}
 	
 	/**
 	 * Updates the tag list in the right panel.
 	 */
-	private function UpdateTagPanel():Void
+	public function UpdateTags(p_list:Array<String>):Void
 	{
 		var tc : DivElement = cast Browser.document.getElementById("tag-container");		
 		tc.innerHTML = "";		
 		var html : String = "";
-		for (i in 0...tags.length)
-		{
-			html += "<div class='panel-tag'><span>" + tags[i] + "</span><span id='tag-close'>x</span></div>";
-		}
+		for (i in 0...p_list.length) html += "<div class='panel-tag'><span>" + p_list[i] + "</span><span id='tag-close'>x</span></div>";
 		tc.innerHTML = html;
 	}
 	
@@ -306,7 +285,6 @@ class RegionSection extends TLDCSection
 			var rci : Element = null;
 			var c : Container = cast container.Find("charts");			
 			var il : HTMLCollection;
-			
 			
 			il = Browser.document.getElementById("chart-item-list-0").children;
 			for (i in 0...il.length)

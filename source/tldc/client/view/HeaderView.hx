@@ -53,7 +53,7 @@ class HeaderView  extends TLDCResource
 	 * @param	p_time
 	 * @param	p_delay
 	 */
-	public function ChangeCounter(p_value : Int, p_time : Float = 0.5,p_delay:Float=0):Void
+	public function UpdateCounter(p_value : Int, p_time : Float = 0.5,p_delay:Float=0):Void
 	{
 		Tween.Add(this, "counter", p_value, p_time, p_delay,Cubic.In);
 	}

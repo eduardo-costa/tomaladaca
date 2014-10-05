@@ -5,7 +5,8 @@ import haxor.core.Resource;
 import haxor.thread.Activity;
 import js.Browser;
 import js.html.Event;
-import tldc.client.model.TLDCFilter.Filters;
+import tldc.client.model.TLDCFilter;
+
 
 /**
  * Class that handles the switch between behaviours of this site.
@@ -18,10 +19,6 @@ class TLDCController extends TLDCResource
 	 */
 	public var path : Array<String>;
 	
-	/**
-	 * Reference to the controller of filtering.
-	 */
-	public var filter : FilterController;
 
 	/**
 	 * CTOR.
@@ -32,7 +29,7 @@ class TLDCController extends TLDCResource
 		Console.Log("TLDCController> Init", 1);
 		Browser.window.onhashchange = OnHashChange;				
 		path = [];
-		filter = new FilterController();
+		
 	}
 	
 	/**
@@ -62,6 +59,17 @@ class TLDCController extends TLDCResource
 	}
 	
 	/**
+	 * Callback called when the current query changed.
+	 * @param	p_filter
+	 */
+	public function OnQueryChange(p_filter : TLDCFilter):Void
+	{
+		Console.Log("TLDCController> QueryChange");
+		app.view.header.UpdateCounter(p_filter.total, 1.0);
+		app.view.section.region.OnQueryChange(p_filter);
+	}
+	
+	/**
 	 * Callback called when the section finished changing.
 	 */
 	public function OnSectionChange():Void
@@ -78,9 +86,8 @@ class TLDCController extends TLDCResource
 	{
 		app.view.loader.Remove(0.8);
 		app.view.header.Show(1.8);
-		app.view.header.ChangeCounter(app.model.filter.GetTotalDonations(), 10.0, 2.8);
+		app.view.header.UpdateCounter(app.model.filter.total, 5.0, 2.8);
 		app.view.footer.Show(2.0);		
-		Activity.Delay(2.5, function():Void {  ApplyHash(Browser.location.hash);	} );
 	}
 	
 	/**
@@ -110,8 +117,12 @@ class TLDCController extends TLDCResource
 				app.view.section.Show();
 				Activity.Delay(1.0, function():Void 
 				{ 
-					app.view.section.region.InitializeElements();
-					app.view.section.region.SelectDefault();
+					app.view.section.region.InitializeElements();					
+					ApplyHash(Browser.location.hash);
+					if (Browser.location.hash == "")
+					{				
+						app.model.filter.DefaultQuery();
+					}					
 				});
 			});
 		}
