@@ -6,6 +6,8 @@ import haxor.platform.Types.Float32;
 import tldc.client.model.TLDCModel.Donation;
 import tldc.client.TLDCResource;
 
+
+
 /**
  * Template class for a tree node from the data.
  */
